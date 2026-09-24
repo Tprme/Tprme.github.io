@@ -159,6 +159,44 @@
     padding-left: 14px !important;
 }
 
+/* ============ 代码块横向溢出修复 ============
+   问题现象：长代码行会把整页撑宽（实测 1280 视口下 document 宽 1522，多出 282px）。
+   根因有两个：
+     1) hexo-renderer-marked 把代码块渲染成 <figure class="highlight"><table><tr><td class="code">
+        表格默认 table-layout:auto，宽度跟着内容无限增长，父容器压不住它；
+     2) 主题的 `table:not(.hljs-ln) tr td { padding: 10px 20px }` 也命中了这个表格，
+        给唯一的代码单元格又加了一圈内边距（浏览器把 <pre> 的 pre 空白算进单元格固有宽度）。
+   修复思路：把代码块表格约束成「固定布局 + 占满容器」，纵向不管，
+   让内容在 <pre> 内部横向滚动，而不是把整页顶宽。 */
+figure.highlight table,
+.code-block table {
+    table-layout: fixed;
+    width: 100%;
+    margin: 0;
+}
+
+figure.highlight td,
+.code-block td {
+    padding: 0 !important;
+    background: none !important;
+    border-radius: 0 !important;
+}
+
+figure.highlight td.code,
+.code-block td.code {
+    width: 100%;
+}
+
+figure.highlight pre,
+.code-block pre {
+    /* 横向滚动条出现在代码块内部，避免整页横向溢出 */
+    overflow-x: auto;
+    /* 必须是 pre：值 inherit 会从 <td> 继承到 normal，导致长代码行被折行显示。
+       实测 white-space:normal 时长数组行折成 3 行（行高 54px），
+       white-space:pre 时保持单行并产生横向滚动（scrollWidth 1361 > clientWidth 852）。 */
+    white-space: pre;
+}
+
 /* ---------- 全局底色与文字 / 字体 ---------- */
 body {
     background: var(--ly-bg);

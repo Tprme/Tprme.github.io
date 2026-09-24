@@ -7,16 +7,15 @@ comments: false
 
 ## 关于我
 
-Tprme，平时打 CTF，方向偏 **DevOps** 和 **Pwn**。
+Tprme，大一刚入学，C 语言基础刚学完，正在往后面学。
 
-这个博客用来记录比赛里的解题思路、折腾环境踩过的坑，以及一些零散的想法。
-写得不算好，但都是自己真的做过、真的错过的事。
+这个博客主要用来记录学习路上踩过的坑：报错怎么出现的、查了哪些资料、最后怎么解决的。
+写得不算好，但都是自己真的写过、真的错过的事。
 
 ## 这里会有什么
 
 - **踩坑记录** —— 出过的错、怎么发现的、下次怎么避免
 - **随笔** —— 想到什么写什么
-- **Writeup** —— 题目的解题过程（以后会慢慢补）
 
 ## 找到我
 
@@ -32,5 +31,5 @@ Tprme，平时打 CTF，方向偏 **DevOps** 和 **Pwn**。
 
 ## 常用
 
-- [CTF Wiki](https://ctf-wiki.org/) —— 入门和查资料都很好用
-- [CTFtime](https://ctftime.org/) —— 赛事日历与战队排名
+- [C++ Reference](https://en.cppreference.com/w/) —— 查 C/C++ 标准库和函数用法
+- [菜鸟教程](https://www.runoob.com/cprogramming/c-tutorial.html) —— 语法忘了我常翻这个

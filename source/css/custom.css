@@ -388,16 +388,61 @@ a {
 }
 
 /* ---------- 分类/标签链接触摸区域 ----------
-   实测这些链接的行盒高度只有 19–20px，低于 WCAG 2.5.8 建议的 24×24px 最小点击尺寸。
+   实测这些链接的行盒高度只有 19px，低于 WCAG 2.5.8 建议的 24×24px 最小点击尺寸。
    主题已经把 .category / .tags .tag 设成 inline-block，所以补纵向内边距就能
-   真正撑大点击区域（行内元素加 padding 是无效的）。
-   各加 2px 后高度到 24px，视觉上几乎看不出来。 */
+   真正撑大点击区域（纯行内元素加 padding 不改变行盒高度，是无效的）。
+   各加 2~3px 后高度到 24px，视觉上几乎看不出来。
+
+   注意选择器要覆盖三个不同容器，它们的类名并不统一：
+     - 首页卡片：.post > .post-tags > span.tag > a（不是 .tags！）
+     - 归档页  ：.timeline-content > .info > span.category / span.tags
+     - 文章页  ：.article > .info > span.category / span.tags            */
 #home-posts .post .category-and-date .category a,
-#home-posts .post .category-and-date .tags a,
-#home-posts .post .category-and-date .tag a,
+#home-posts .post .category-and-date .date a,
+#home-posts .post .post-tags .tag a,
+#home-posts .post .post-tags a,
+.timeline-content .info .category a,
+.timeline-content .info .tags .tag a,
+.timeline-content .info .tags a,
 .article .info .category a,
 .article .info .tags .tag a,
 .article .info .tags a {
+    padding-bottom: 3px;
+    padding-top: 3px;
+}
+
+/* 页脚链接同属偏小的点击目标（19px），页脚不换行，补内边距不影响排版 */
+#footer #footer-wrap a {
+    display: inline-block;
+    padding-bottom: 3px;
+    padding-top: 3px;
+}
+
+/* 极短的标签（例如单字符的「C」）只有 9px 宽，同样达不到 24px。
+   min-width 必须加在外层 inline-block 的 span.tag 上 —— 直接加在内联的 <a> 上不生效。 */
+#home-posts .post .post-tags .tag,
+.timeline-content .info .tags .tag,
+.article .info .tags .tag {
+    min-width: 24px;
+    text-align: center;
+}
+
+#home-posts .post .post-tags .tag a,
+.timeline-content .info .tags .tag a,
+.article .info .tags .tag a {
+    display: inline-block;
+    padding-left: 4px;
+    padding-right: 4px;
+    text-align: center;
+    width: 100%;
+}
+
+/* 正文里的内联链接（关于页、文章内的外链）行盒只有 20px。
+   改 inline-block 补纵向内边距到 24px —— 纯行内元素加 padding 不会改变行盒高度。 */
+.article .content p a,
+.article .content li a,
+.article .content td a {
+    display: inline-block;
     padding-bottom: 2px;
     padding-top: 2px;
 }

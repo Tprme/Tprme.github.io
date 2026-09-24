@@ -1,6 +1,6 @@
 # 我的博客
 
-个人博客，用来记录 CTF 比赛的 Writeup 和一些学习笔记。
+个人博客，用来记录编程入门路上踩过的坑和一点学习笔记（主要是 C 语言和 Python）。
 
 🌐 **https://Tprme.github.io**
 
@@ -44,26 +44,35 @@ date: 2026-09-10 20:00:00
 categories:
   - 随笔
 tags:
-  - CTF
+  - C
 ---
+
+这里是摘要，首页只会显示这一段。
+
+<!-- more -->
+
+从这里开始是正文，首页不再显示。
 ```
 
 这里填的 `categories` 和 `tags` 会出现在网站的分类页和标签页里。
 
+**`<!-- more -->` 别忘了写**：不写的话首页会把整篇文章铺出来，而不是显示摘要 +「阅读全文」。
+
 ## 目录说明
 
 ```
-source/_posts/       
-source/about/       
-_config.yml          
-themes/loststar/    
-.github/workflows/  
+source/_posts/       文章（Markdown）
+source/about/        关于页
+source/css/custom.css  自定义样式（覆盖主题默认样式）
+_config.yml          站点配置（标题、网址、分类标签等）
+themes/loststar/     主题
+.github/workflows/   自动部署脚本
 ```
 
 ## 常用命令
 
 ```bash
-npm run server  
-npm run build 
-npm run clean    
+npm run server   # 本地预览 http://localhost:4000
+npm run build    # 生成静态网页到 public/
+npm run clean    # 清掉缓存和 public/
 ```

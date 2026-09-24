@@ -344,12 +344,49 @@ a {
     }
 }
 
-/* ---------- 顶部导航：白底毛玻璃 ---------- */
+/* ---------- 顶部导航：液态玻璃（Liquid Glass） ----------
+   基础层是半透明 + backdrop-filter 模糊；高光层是 ::after 上的两组径向渐变：
+     - 一层固定在左上角，模拟苹果效果里的「环境光边缘反射」；
+     - 一层跟随鼠标位置（--ly-glass-x/y 由 js/lib/glass.js 更新），
+       让高光随指针在玻璃表面移动，这是「液态」感的主要来源。
+   注意：真正的折射（背景内容被玻璃弯折）纯 CSS 做不到，
+   需要 SVG feDisplacementMap 或 WebGL，这里没有采用。 */
 #menu {
-    background: rgba(255, 255, 255, 0.86);
-    backdrop-filter: saturate(180%) blur(12px);
-    -webkit-backdrop-filter: saturate(180%) blur(12px);
-    box-shadow: 0 1px 0 var(--ly-border), 0 4px 16px rgba(16, 24, 40, 0.05);
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+        0 1px 0 rgba(16, 24, 40, 0.05),
+        0 6px 24px rgba(16, 24, 40, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+#menu::after {
+    background:
+        radial-gradient(
+            340px circle at var(--ly-glass-x, 22%) var(--ly-glass-y, -30%),
+            rgba(255, 255, 255, 0.5),
+            rgba(255, 255, 255, 0) 62%
+        ),
+        radial-gradient(
+            120% 160% at 8% -60%,
+            rgba(255, 255, 255, 0.42),
+            rgba(255, 255, 255, 0) 58%
+        );
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 0.35s ease;
+    /* 必须是正值：负 z-index 会把这层推到 #menu 自身背景之下，等于白做。
+       导航内没有定位元素，高光层不会遮住链接文字。 */
+    z-index: 1;
+}
+
+#menu.ly-glass-lit::after {
+    opacity: 1;
 }
 
 /* 注意：主题用的是 #menu #desktop-menu a 这种高优先级选择器，
@@ -369,16 +406,82 @@ a {
     color: var(--ly-accent);
 }
 
-/* ---------- 文章卡片：去掉重阴影，改细边框 + 轻阴影 ---------- */
+/* ---------- 文章卡片：液态玻璃质感 ----------
+   背景由主题内联的 --tx-post-bg 决定（每个分类一套配色，由 JS 注入）,
+   所以这里不改 background-color，而是叠一层同色半透明渐变：
+   既保留分类配色，又获得玻璃的通透感。
+   用 currentColor 而不是白色，避免把浅色分类配色洗淡。 */
 #home-posts .post,
 .article {
-    border: 1px solid var(--ly-border);
-    box-shadow: var(--ly-shadow);
+    background-image: linear-gradient(
+        145deg,
+        color-mix(in srgb, currentColor 4%, transparent),
+        transparent 42%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.85),
+        inset 0 -1px 0 rgba(16, 24, 40, 0.035),
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 10px 30px rgba(16, 24, 40, 0.07);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 左上角一道细窄的镜面高光，模拟玻璃边缘的反光 */
+#home-posts .post::after,
+.article::after {
+    background: linear-gradient(
+        132deg,
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0) 34%
+    );
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
 }
 
 #home-posts .post:hover {
-    box-shadow: var(--ly-shadow-hover);
-    border-color: #d7dde8;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 2px 4px rgba(16, 24, 40, 0.05),
+        0 16px 40px rgba(16, 24, 40, 0.11);
+}
+
+/* 悬停时玻璃整体轻微「浮起」 */
+#home-posts .post:hover,
+.article:hover {
+    transform: translateY(-2px);
+}
+
+#home-posts .post,
+.article {
+    transition:
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+}
+
+/* 列表页卡片与个人资料卡用同一套玻璃语言 */
+.timeline-content,
+#home-card #card-div {
+    background-image: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.55),
+        rgba(255, 255, 255, 0) 46%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.85),
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 10px 30px rgba(16, 24, 40, 0.07);
+}
+
+.timeline-content:hover {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 2px 4px rgba(16, 24, 40, 0.05),
+        0 16px 40px rgba(16, 24, 40, 0.11);
 }
 
 #home-posts .post .category-and-date,

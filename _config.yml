@@ -5,8 +5,8 @@
 # Site
 title: Tprme
 subtitle: 'CTF | 记录成长'
-description: 'Tprme 的个人博客 —— CTF Writeup、DevOps 与日常记录'
-keywords: CTF, Writeup, DevOps, Pwn, 网络安全, Tprme
+description: 'Tprme 的个人博客：记录编程入门路上踩过的坑，主要是 C 语言和 Python 的学习笔记、报错排查与踩坑记录。'
+keywords: C语言, Python, 编程入门, 学习笔记, 踩坑记录, 报错排查, Tprme
 author: Tprme
 language: zh-CN
 timezone: 'Asia/Shanghai'

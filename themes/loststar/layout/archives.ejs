@@ -30,7 +30,8 @@
             <div class="timeline-content">
                 <div class="item-time"><%= date(post.date, "YYYY/M/D") %></div>
                 <a href="<%- url_for(post.path) %>">
-                    <h3><%= getDisplayTitle(post) %></h3>
+                    <%# 原来是 h3，与页面标题 h1 之间缺一级。改 h2，字号见 custom.css %>
+                    <h2><%= getDisplayTitle(post) %></h2>
                 </a>
                 <div class="info">
                     <% if (post.categories && post.categories.data.length !== 0) { %>

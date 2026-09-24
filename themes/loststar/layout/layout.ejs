@@ -96,9 +96,13 @@
                注意：这里绝对不能再加内联 style，
                否则会和 v-show 争夺同一个 style.display，导致 v-show 失效、
                加载层永远挡住页面（踩过这个坑）。显隐完全交给 v-show 控制。 %>
-            <div id="loading" v-show="loading">
+            <div id="loading" v-show="loading" aria-hidden="true">
                 <div id="loading-circle">
-                    <h2><%- (theme.i18n && theme.i18n.loading_title) || 'LOADING' %></h2>
+                    <%# 这里不能用 <h2>：加载层虽然会被 v-show 隐藏，
+                        但它始终留在 DOM 里，于是「加载中」会一直出现在
+                        document outline 里，把标题层级从 h1 顶上多出一级。
+                        改用普通 div + 样式类，视觉不变，语义干净。 %>
+                    <div class="ly-loading-title"><%- (theme.i18n && theme.i18n.loading_title) || 'LOADING' %></div>
                     <p><%- (theme.i18n && theme.i18n.loading_message) || 'Please wait a moment...' %></p>
                     <img src="<%- url_for(theme.loading) %>" alt="<%- (theme.i18n && theme.i18n.loading_alt) || 'Loading' %>" />
                 </div>

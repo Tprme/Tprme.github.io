@@ -16,7 +16,9 @@
         <span class="info">
             <div class="wrap">
                 <h1><%= config.title %></h1>
-                <% if (config.subtitle) { %><h3><%= config.subtitle %></h3><% } %>
+                <%# 副标题原来是 <h3>，会造成 h1 → h3 跳级（页面里没有 h2）。
+                    换成带样式的 div，观感一致，标题层级不再断裂。 %>
+                <% if (config.subtitle) { %><div class="ly-subtitle"><%= config.subtitle %></div><% } %>
 
             </div>
         </span>

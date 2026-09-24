@@ -296,7 +296,8 @@ a {
     }
 }
 
-#loading-circle h2 {
+#loading-circle h2,
+#loading-circle .ly-loading-title {
     color: var(--ly-text);
     font-size: 17px;
     font-weight: 600;
@@ -384,6 +385,21 @@ a {
 .article .info .category,
 .article .info .tags {
     color: var(--ly-text-soft);
+}
+
+/* ---------- 分类/标签链接触摸区域 ----------
+   实测这些链接的行盒高度只有 19–20px，低于 WCAG 2.5.8 建议的 24×24px 最小点击尺寸。
+   主题已经把 .category / .tags .tag 设成 inline-block，所以补纵向内边距就能
+   真正撑大点击区域（行内元素加 padding 是无效的）。
+   各加 2px 后高度到 24px，视觉上几乎看不出来。 */
+#home-posts .post .category-and-date .category a,
+#home-posts .post .category-and-date .tags a,
+#home-posts .post .category-and-date .tag a,
+.article .info .category a,
+.article .info .tags .tag a,
+.article .info .tags a {
+    padding-bottom: 2px;
+    padding-top: 2px;
 }
 
 /* ---------- 个人资料卡 ---------- */
@@ -600,6 +616,24 @@ table:not(.hljs-ln) td:nth-child(odd) {
     }
 }
 
+/* ---------- 列表页卡片标题 ----------
+   原来是 <h3>（24px），与页面 h1 之间跳了一级；改成 <h2> 后必须显式定字号，
+   否则会吃到全局 h2 的 27px —— 比页面标题还大。
+   这里收到 20px，顺便让「页面标题 > 卡片标题」的层级真正拉开。 */
+#archives .timeline-content h2,
+.categories-tags-list .timeline-content h2,
+.timeline-content h2 {
+    font-size: 20px;
+    line-height: 1.45;
+    margin: 6px 0;
+}
+
+@media (max-width: 767px) {
+    .timeline-content h2 {
+        font-size: 18px;
+    }
+}
+
 /* ---------- 归档页分类/标签胶囊 ---------- */
 #archives .categories-tags span a:hover {
     background: var(--ly-accent-soft);
@@ -726,7 +760,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 #home-head #home-info .info .wrap h1,
 #home-head #home-info .info .wrap h3,
-#home-head #home-info .info .wrap h5 {
+#home-head #home-info .info .wrap h5,
+#home-head #home-info .info .wrap .ly-subtitle {
     color: #ffffff;
     text-shadow: 0 2px 14px rgba(8, 14, 22, 0.5);
 }
@@ -737,10 +772,30 @@ table:not(.hljs-ln) td:nth-child(odd) {
     margin-bottom: 14px;
 }
 
-#home-head #home-info .info .wrap h3 {
+#home-head #home-info .info .wrap h3,
+#home-head #home-info .info .wrap .ly-subtitle {
     font-size: 22px;
     font-weight: 500;
     opacity: 0.86;
+}
+
+/* ---------- 首页副标题 ----------
+   原来是 <h3>（会造成 h1 → h3 跳级），现在换成 <div class="ly-subtitle">。
+   div 不会继承 h3 的字号，所以这里必须显式声明，否则会掉回 body 的 14px。
+   以下取值与原 <h3> 的视觉保持一致。 */#home-head #home-info .info .wrap .ly-subtitle {
+    display: block;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 0 24px;
+    opacity: 0.86;
+}
+
+@media (max-width: 767px) {
+    #home-head #home-info .info .wrap .ly-subtitle {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
 }
 
 /* 去掉原来为纯色背景加的白色半透明底框 */

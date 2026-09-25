@@ -1068,23 +1068,43 @@ table:not(.hljs-ln) td:nth-child(odd) {
     overflow: hidden;
 }
 
-/* 左侧面板渐变：中蓝灰，比原来的近黑色浅一些，但白字对比度依然充足。
-   照片改成卡片式后是一条硬边，这里不再需要向透明渐隐。 */
+/* ---------- 首屏面板（浅色）----------
+   原来是中蓝灰渐变 + 白字。改成白底后有两件事必须一起处理：
+     1) 文字要从白色换成深色，否则白底白字看不见；
+     2) 纯白太空，加一层极淡的点阵纹理 + 两团柔光。
+   点阵用「深色点」而不是浅灰点 —— 浅灰点落在白底上等于看不见
+   （和「白描边画在白卡上」是同一类错误，之前踩过）。
+   这张点阵在概念上与深色模式的星空同构：一边是暗底亮点，
+   一边是亮底暗点，两种主题因此有统一的材质语言。 */
 #home-head::after {
+    background-color: #ffffff;
+    background-image:
+        /* 左上、右下各一团极淡冷光，避免大面积纯白显得寡淡 */
+        radial-gradient(
+            62% 78% at 8% 0%,
+            rgba(197, 214, 240, 0.4),
+            transparent 62%
+        ),
+        radial-gradient(
+            54% 66% at 78% 108%,
+            rgba(211, 222, 242, 0.34),
+            transparent 60%
+        ),
+        /* 点阵：用径向渐变平铺成圆点。周期要够大，太密会变成噪点 */
+        radial-gradient(
+            circle at center,
+            rgba(120, 141, 172, 0.22) 0,
+            rgba(120, 141, 172, 0.22) 1.35px,
+            transparent 1.45px
+        );
+    background-position: 0 0, 0 0, 0 0;
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-size: auto, auto, 29px 29px;
     content: "";
-    position: absolute;
     inset: 0;
-    background: linear-gradient(
-        100deg,
-        #2e4257 0%,
-        #344a61 38%,
-        #3d556e 52%,
-        #445d78 66%,
-        #4a6480 82%,
-        #4f6a87 100%
-    );
-    z-index: -1;
     pointer-events: none;
+    position: absolute;
+    z-index: -1;
 }
 
 #home-head #home-background {
@@ -1126,11 +1146,13 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 /* 首屏底色：一层纯中蓝灰面板（P2 #27384c）。
    卡片式的层次靠照片自身的圆角与阴影表达，不需要模糊衬底。 */
+/* 最底层衬色：浅色下与面板同为白色（原来是深蓝 #27384c，
+   在面板不透明的区域看不到，但四舍五入的边角会透出一圈蓝） */
 #home-head::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: #27384c;
+    background: #ffffff;
     z-index: -2;
 }
 
@@ -1155,12 +1177,14 @@ table:not(.hljs-ln) td:nth-child(odd) {
     text-align: left;
 }
 
+/* 首屏文字：浅色主题下是深色字（白底 + 白字会看不见）。
+   深色的覆盖见文件末尾的「深色模式：组件级修正」一节。 */
 #home-head #home-info .info .wrap h1,
 #home-head #home-info .info .wrap h3,
 #home-head #home-info .info .wrap h5,
 #home-head #home-info .info .wrap .ly-subtitle {
-    color: #ffffff;
-    text-shadow: 0 2px 14px rgba(8, 14, 22, 0.5);
+    color: var(--ly-text);
+    text-shadow: none;
 }
 
 #home-head #home-info .info .wrap h1 {
@@ -1173,7 +1197,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
 #home-head #home-info .info .wrap .ly-subtitle {
     font-size: 22px;
     font-weight: 500;
-    opacity: 0.86;
+    opacity: 1;
 }
 
 /* ---------- 首页副标题 ----------
@@ -1243,15 +1267,28 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 /* 窄屏改成上下布局：上面放标题，下面放照片卡片 */
 @media (max-width: 767px) {
+    /* 移动端浅色：同样是白底 + 点阵，只是柔光位置改成竖向分布 */
     #home-head::after {
-        background: linear-gradient(
-            to bottom,
-            #2e4257 0%,
-            #344a61 30%,
-            #3d556e 48%,
-            #455e79 66%,
-            #4a6480 100%
-        );
+        background-color: #ffffff;
+        background-image:
+            radial-gradient(
+                86% 60% at 50% 0%,
+                rgba(197, 214, 240, 0.42),
+                transparent 64%
+            ),
+            radial-gradient(
+                78% 56% at 50% 100%,
+                rgba(211, 222, 242, 0.36),
+                transparent 62%
+            ),
+            radial-gradient(
+                circle at center,
+                rgba(120, 141, 172, 0.22) 0,
+                rgba(120, 141, 172, 0.22) 1.35px,
+                transparent 1.45px
+            );
+        background-repeat: no-repeat, no-repeat, repeat;
+        background-size: auto, auto, 29px 29px;
     }
 
     /* 深色移动端的首屏同样用星空，否则上面那条竖排蓝色渐变会盖掉星空。
@@ -1522,4 +1559,20 @@ table:not(.hljs-ln) td:nth-child(odd) {
 /* 深色模式下导航顶部高光弱一点，否则整条会发灰 */
 :root[data-theme="dark"] #menu::after {
     opacity: 0.5;
+}
+
+/* ---------- 深色模式：首屏文字回到白色 ----------
+   浅色主题下首屏改成了白底点阵，文字是深色；
+   深色下是黑底星空，文字必须重新变白，并补回文字阴影
+   （黑底上白字不需要阴影，但有阴影在星点附近更清晰）。 */
+:root[data-theme="dark"] #home-head #home-info .info .wrap h1,
+:root[data-theme="dark"] #home-head #home-info .info .wrap h3,
+:root[data-theme="dark"] #home-head #home-info .info .wrap h5,
+:root[data-theme="dark"] #home-head #home-info .info .wrap .ly-subtitle {
+    color: #ffffff;
+    text-shadow: 0 2px 14px rgba(8, 14, 22, 0.5);
+}
+
+:root[data-theme="dark"] #home-head #home-info .info .wrap .ly-subtitle {
+    opacity: 0.86;
 }

@@ -448,24 +448,30 @@ a {
     text-align: center;
 }
 
-/* 头像 + 旋转光环：光环用 conic-gradient 做出「缺口」效果 */
+/* 旋转光环：用 conic-gradient 做出「缺口」效果。
+   改版要点：
+   1. 尺寸 76 → 60px、线宽 4 → 3px。原来 76px 的环配 17px 的文字，
+      比例偏大、视觉重心整个压在环上，文字成了附属。
+   2. 渐变的中间色不再硬编码 rgba(59,130,246,.15)，改用 color-mix
+      从 --ly-accent 推。那个硬编码值是按浅色主题挑的，
+      深色模式下会偏暗、和末尾的 --ly-accent 之间出现断档。 */
 #loading-circle::before {
     animation: ly-spin 0.9s linear infinite;
     background: conic-gradient(
         from 0deg,
-        rgba(59, 130, 246, 0) 0deg,
-        rgba(59, 130, 246, 0.15) 200deg,
+        transparent 0deg,
+        color-mix(in srgb, var(--ly-accent) 15%, transparent) 200deg,
         var(--ly-accent) 340deg,
         var(--ly-accent) 360deg
     );
     border-radius: 50%;
     content: "";
-    height: 76px;
-    margin-bottom: 22px;
+    height: 60px;
+    margin-bottom: 20px;
     position: relative;
-    width: 76px;
-    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-    mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+    width: 60px;
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
 }
 
 @keyframes ly-spin {
@@ -481,13 +487,15 @@ a {
     }
 }
 
+/* 标题与副标题的行距收紧一档：环变小之后，原来 17px + 8px 下边距
+   显得文字块太散，和环不成比例。 */
 #loading-circle h2,
 #loading-circle .ly-loading-title {
     color: var(--ly-text);
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    margin: 0 0 8px;
+    letter-spacing: 0.06em;
+    margin: 0 0 6px;
 }
 
 #loading-circle p {
@@ -501,33 +509,13 @@ a {
     display: none;
 }
 
-/* 细进度条：等宽循环，给"还在加载"一个持续的视觉反馈 */
-#loading-circle::after {
-    animation: ly-progress 1.4s ease-in-out infinite;
-    background: linear-gradient(90deg, transparent, var(--ly-accent), transparent);
-    border-radius: 2px;
-    content: "";
-    height: 2px;
-    margin-top: 24px;
-    width: 108px;
-}
-
-@keyframes ly-progress {
-    0% {
-        opacity: 0.25;
-        transform: scaleX(0.35);
-    }
-
-    50% {
-        opacity: 1;
-        transform: scaleX(1);
-    }
-
-    100% {
-        opacity: 0.25;
-        transform: scaleX(0.35);
-    }
-}
+/* 进度条已去掉。
+   原来这里有一条 `#loading-circle::after`：108×2px 的渐变线，
+   配 ly-progress 动画（1.4s 来回 scaleX + opacity）。
+   它和旋转环表达的是同一件事 —— 「正在加载」，两个动效同时跑
+   会让画面上有两个焦点互相抢注意力，而且两者的节奏（0.9s 旋转
+   vs 1.4s 横扫）本来就不同步，看着更乱。
+   一个旋转环足够了，所以连同它的 @keyframes ly-progress 一起删掉。 */
 
 /* ---------- 顶部导航：液态玻璃（Liquid Glass） ----------
    基础层是半透明 + backdrop-filter 模糊；高光层是 ::after 上的两组径向渐变：
@@ -576,9 +564,22 @@ a {
     width: auto;
 }
 
-/* 滚动后：模糊加深、阴影加重，让胶囊「浮」得更高一点（视差感） */
+/* 滚动后：只加深阴影，blur 保持不变。
+   这里原来写的是 `--ly-glass-blur: 22px`，让模糊半径从 16px 变成 22px。
+   问题是 #menu 的 transition 只声明了 box-shadow，**没有 backdrop-filter**，
+   所以这个变化是瞬间跳变的、没有任何过渡。
+   而用户上下滑动时 scrollY 会反复跨过 glass.js 里 8px 那个阈值，
+   blur 就在 16/22 之间来回跳 —— 表现就是「一闪一闪」。
+
+   逐帧采样（rAF 记录 #menu 的计算样式）实测到：
+     blur          : saturate(1.8) blur(16px) ↔ blur(22px)   ← 跳变
+     boxShadow 长度: 127 / 139 / 140 / 138 / 135 / 137 / 128  ← 7 种中间值，在平滑过渡
+     menu 背景 / 不透明度 / 底边 / main 的 class              ← 全程恒定
+   也就是说跳变的只有 blur 一个，阴影那条是好的（有 0.3s 过渡）。
+
+   16px 和 22px 的视觉差别本来就几乎看不出来，不值得为它牺牲稳定性；
+   阴影加深已经足够表达「滚动后浮起来」。所以这里只保留阴影。 */
 #menu.ly-glass-scrolled {
-    --ly-glass-blur: 22px;
     box-shadow:
         0 2px 6px rgba(16, 24, 40, 0.07),
         0 14px 40px rgba(16, 24, 40, 0.16),
@@ -1374,7 +1375,10 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 #search-bar:focus {
     border-color: var(--ly-accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    /* 焦点环也从 --ly-accent 推，不再硬编码 rgba(59,130,246,.15)：
+       那个值是按浅色主题挑的，而深色下 --ly-accent 是 #6ba4ff，
+       硬编码的浅蓝压在深底上会发灰、显脏。 */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ly-accent) 15%, transparent);
     outline: none;
 }
 
@@ -1993,17 +1997,47 @@ table:not(.hljs-ln) td:nth-child(odd) {
         border-radius: 999px;
         /* box-sizing 必须显式写：本站没有全局 border-box 重置，
            <a> 默认 content-box 而 <button> 在多数 UA 里是 border-box，
-           两者都写 width:100% 会差出 2px 的边框宽度（实测 362 vs 360），
+           两者都写同样的宽度会差出边框宽度（实测 362 vs 360），
            一列胶囊宽窄不齐。 */
         box-sizing: border-box;
         box-shadow: var(--ly-glass-inset);
         display: flex;
+        /* 高度 52 → 44，并给项与项之间留 8px。
+           上一版是「满宽 360 + 高 52 + 零间距」：6 个胶囊叠在一起，
+           相邻两个的圆角直接贴合、看起来像连成一片（反馈「相交上了」），
+           而且 6×52=312px 占掉手机屏的 37%，整体太笨重。
+           现在高度收紧、间距拉开，胶囊之间是清楚的一个个分开的。 */
+        height: 44px;
+        margin: 0 auto 8px;
         padding: 0;
         transition:
             box-shadow 0.25s ease,
             transform 0.25s ease,
             background-color 0.25s ease;
-        width: 100%;
+        /* 不再满宽。满宽是因为宽度写死 100%，
+           手机上 390px 视口两侧只剩 15px，一排大胶囊很压抑。
+           改成包住内容并居中，宽度由下面 .item 决定。 */
+        width: fit-content;
+    }
+
+    /* 内部那一行原来靠 `.item { width: 80%; min-width: 200px }` 撑着，
+       父容器改成 fit-content 之后这个百分比会退化成 auto
+       （fit-content 要算内容宽，内容宽又依赖父宽，循环了），
+       所以这里显式给一个统一宽度：既避免退化，又保证 6 个胶囊等宽 ——
+       否则 Home 窄、Categories 宽，一列参差不齐反而更乱。 */
+    #menu #mobile-menu .items .item {
+        height: 100%;
+        margin: 0;
+        min-width: 0;
+        width: 200px;
+    }
+
+    /* 上下内边距对称。主题给的是 `padding: 10px 0 20px`，
+       下面那 20px 叠上每项自己的 8px margin-bottom，
+       会让「最后一个胶囊到汉堡行」的距离（28px）明显大于
+       「第一个胶囊到胶囊顶」的距离（11px），上下不平衡。 */
+    #menu #mobile-menu .items {
+        padding: 8px 0;
     }
 
     #menu #mobile-menu .items a:hover,

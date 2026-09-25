@@ -685,10 +685,78 @@ a {
    999px 半径在这种形状上会被浏览器按比例缩到「半高」，
    变成一个 150px 大圆角的球场面，菜单项贴着弧线很难看。
    展开状态下换成常规卡片圆角。用 :has() 判断下拉是否可见：
-   Vue 的 v-show 会写成内联 display:none，这里就是靠它区分开合。 */
+   Vue 的 v-show 会写成内联 display:none，这里就是靠它区分开合。
+
+   顺带在这里关掉背景模糊，是为了性能（见下面那条 slide 过渡的说明）：
+   展开动画期间胶囊高度在变，backdrop-filter 每帧都要重新对背景做模糊采样，
+   这是本站最贵的一条样式。展开状态下底下压着的是菜单项本身、
+   不需要靠透出背景来营造玻璃感，所以换成高不透明底。
+   用 92% 而不是纯色：留一点通透，视觉上还在同一套语言里。 */
 #menu:has(#mobile-menu .items:not([style*="display: none"])) {
+    background: color-mix(in srgb, var(--ly-surface) 92%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border-radius: 26px;
 }
+
+/* 手机端菜单展开动画：别再用 margin-top。
+   主题的 slide 过渡是：
+     .slide-enter-from   { margin-top: -300px; opacity: 0 }
+     .slide-enter-active { transition: margin-top .3s, opacity .3s }
+   margin-top 是布局属性，动画期间每一帧都要重新排版整个页面；
+   而 #menu 上又挂着 backdrop-filter，元素尺寸一变就要重新采样背景做模糊。
+   两个开销叠在一起，手机上点一下汉堡就是肉眼可见的掉帧。
+
+   改成 transform + opacity：只走合成，不触发重排。
+   代价是 .items 的布局高度会一次性到位（胶囊先变高、菜单项再滑入），
+   而不是跟着动画一起长高 —— 换来的是动画全程不掉帧，值得。
+
+   选择器必须带 #mobile-menu 前缀：主题那几条是无前缀的全局类
+   （.slide-enter-active 特异性 0,1,0），不提高优先级盖不住。 */
+#mobile-menu .items.slide-enter-active,
+#mobile-menu .items.slide-leave-active {
+    transition:
+        transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 0.24s ease;
+}
+
+#mobile-menu .items.slide-enter-from,
+#mobile-menu .items.slide-leave-to {
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+/* 去掉移动端点击时浏览器默认给的那层蓝色高亮。
+   实测它的 computed 值是 rgba(51, 181, 229, 0.4) —— 一个亮蓝色，
+   是 Chromium 的默认值（全站没有任何地方设置过这个属性），
+   和本站的配色（浅色 #3b82f6 系 / 深色 #6ba4ff）完全不是一套。
+   它在「阅读全文」这类链接上最刺眼，导航上也有。
+
+   这个属性是可继承的，所以写在 :root 上就能覆盖全站，
+   不需要逐个元素去设。站点自己的点击反馈是 hover 的阴影变化
+   加上卡片上的玻璃涟漪（js/lib/glass.js 的 .ly-ripple），
+   不需要浏览器再叠一层和配色无关的蓝。 */
+:root {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 点击后残留的焦点轮廓同理。
+   基线实测 activeElement 的 outline-style 是 none，说明当前没在画，
+   但一旦以后有元素变成可聚焦（比如加了 tabindex）就会冒出来，
+   所以这里先写上兜住。
+
+   用 :focus:not(:focus-visible) 而不是直接 :focus { outline: none }：
+   前者只关掉「鼠标/触摸点击」产生的轮廓，键盘 Tab 聚焦时仍然保留，
+   不会牺牲键盘可达性。 */
+#menu :focus:not(:focus-visible),
+#menu a:focus:not(:focus-visible),
+#menu button:focus:not(:focus-visible),
+#home-posts .post a:focus:not(:focus-visible),
+.go-post:focus:not(:focus-visible) {
+    outline: none;
+}
+
 /* 这里原先有一条 @media (prefers-reduced-transparency: reduce) 的降级：
    系统要求「减少透明度」时把导航换成不透明底、去掉 backdrop-filter。
    后来发现它只在部分页面生效，而且原因很隐蔽：

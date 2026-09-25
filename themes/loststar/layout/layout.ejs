@@ -154,8 +154,8 @@
       必须放在这里而不是 import.ejs：import.ejs 在 <head> 里输出，
       那时 #menu 还没被解析出来，脚本拿不到元素就静默退出了。
     %>
-    <script src="<%- url_for("/js/lib/glass.js") %>"></script>
-    <script src="<%- url_for("/js/main.js") %>"></script>
+    <script src="<%- asset_url("/js/lib/glass.js") %>"></script>
+    <script src="<%- asset_url("/js/main.js") %>"></script>
     <% if (type === "post" && page.comments) { %>
     <%- partial("comment") %>
     <% } %>

@@ -3,34 +3,38 @@
   原因：这两家在国内网络下不稳定甚至不可达，
   Vue 加载失败会让页面永远停在「加载中」，Font Awesome 失败则所有图标消失。
   本地文件见 themes/loststar/source/js/lib/ 与 source/css/fontawesome/。
+
+  自托管资源一律用 asset_url 而不是 url_for：它会拼上文件内容的短 hash，
+  避免 GitHub Pages 的 max-age=600 造成「新 HTML 配旧 CSS」。
+  详见 scripts/asset-version.js。
 %>
-<link rel="stylesheet" href="<%- url_for("/css/fontawesome/css/all.min.css") %>" />
-<script src="<%- url_for("/js/lib/vue.min.js") %>"></script>
+<link rel="stylesheet" href="<%- asset_url("/css/fontawesome/css/all.min.css") %>" />
+<script src="<%- asset_url("/js/lib/vue.min.js") %>"></script>
 <script> const mixins = {}; </script>
 <% if (theme.polyfill.enable) { %>
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=<%- theme.polyfill.features %>"></script>
 <% } %>
 <% if (theme.highlight.enable) { %>
-<script src="<%- url_for("/js/lib/highlight.min.js") %>"></script>
-<script src="<%- url_for("/js/lib/highlightjs-line-numbers.js") %>"></script>
-<link rel="stylesheet" href="<%- url_for("/css/hljs-github.min.css") %>" />
-<script src="<%- url_for("/js/lib/highlight.js") %>"></script>
+<script src="<%- asset_url("/js/lib/highlight.min.js") %>"></script>
+<script src="<%- asset_url("/js/lib/highlightjs-line-numbers.js") %>"></script>
+<link rel="stylesheet" href="<%- asset_url("/css/hljs-github.min.css") %>" />
+<script src="<%- asset_url("/js/lib/highlight.js") %>"></script>
 <% } %>
 <% if (theme.math.enable) { %>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
-<script src="<%- url_for("/js/lib/math.js") %>"></script>
+<script src="<%- asset_url("/js/lib/math.js") %>"></script>
 <% } %>
 <% if (theme.preview.enable) { %>
-<script src="<%- url_for("/js/lib/preview.js") %>"></script>
+<script src="<%- asset_url("/js/lib/preview.js") %>"></script>
 <% } %>
 <% if (theme.crypto.enable && typeof page.secret !== "undefined") { %>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-<script src="<%- url_for("/js/lib/crypto.js") %>"></script>
+<script src="<%- asset_url("/js/lib/crypto.js") %>"></script>
 <% } %>
 <% if (type === "archives" && theme.search.enable) { %>
-<script src="<%- url_for("/js/lib/search.js") %>"></script>
+<script src="<%- asset_url("/js/lib/search.js") %>"></script>
 <% } %>
 <% if (type === "post" && page.comments) { %>
 <% if (theme.gitalk.enable) { %>
@@ -47,12 +51,12 @@
 <% } %>
 <% } %>
 <% if (type === "index") { %>
-<script src="<%- url_for("/js/lib/home.js") %>"></script>
+<script src="<%- asset_url("/js/lib/home.js") %>"></script>
 <% } %>
 <% if (theme.stars && theme.stars.enable) { %>
-<script src="<%- url_for("/js/lib/stars.js") %>"></script>
+<script src="<%- asset_url("/js/lib/stars.js") %>"></script>
 <% } %>
-<link rel="stylesheet" href="<%- url_for("/css/main.css") %>" />
+<link rel="stylesheet" href="<%- asset_url("/css/main.css") %>" />
 <!-- 把首页背景图路径暴露给 CSS，用于首屏的模糊衬底 -->
 <style>
     :root {
@@ -60,4 +64,4 @@
     }
 </style>
 <!-- 本站自定义配色覆盖，必须放在 main.css 之后 -->
-<link rel="stylesheet" href="<%- url_for("/css/custom.css") %>" />
+<link rel="stylesheet" href="<%- asset_url("/css/custom.css") %>" />

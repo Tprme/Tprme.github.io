@@ -1207,6 +1207,40 @@ table:not(.hljs-ln) td:nth-child(odd) {
     display: none !important;
 }
 
+/* ---------- 深色模式的星空首屏 ----------
+   浅色下这块是蓝灰渐变面板；深色下换成夜空 + 星点。
+   星空用多层 background-image 叠加，每层是一张「带一颗星的透明小图」，
+   靠 background-size 平铺：
+     - 三层不同周期(173/97/59px)互相错开，避免出现整齐的网格感；
+     - 每层用不同的 background-position 把星点打散；
+     - radial-gradient 的透明区很大，所以平铺后是稀疏的点，不是圆圈。
+   此外叠一层极淡的冷蓝径向光晕，模拟天光。
+   纯 CSS 实现：不引额外脚本、不依赖 canvas，也不增加请求。 */
+:root[data-theme="dark"] #home-head::after {
+    background-color: #04060c;
+    /* 星空：六层「带一颗星的小图」平铺而成。
+       平铺周期刻意放大（401/233 两档）让星点稀疏 —— 周期小会渲染成噪点，
+       周期大才有夜空的开阔感。三颗一组错开位置，避免整齐的网格。 */
+    background-image:
+        radial-gradient(1.5px 1.5px at 11% 17%, rgba(255, 255, 255, 0.95), transparent 100%),
+        radial-gradient(1px 1px at 7% 54%, rgba(206, 226, 255, 0.85), transparent 100%),
+        radial-gradient(0.9px 0.9px at 16% 80%, rgba(255, 240, 214, 0.7), transparent 100%),
+        radial-gradient(1.2px 1.2px at 19% 31%, rgba(255, 255, 255, 0.8), transparent 100%),
+        radial-gradient(0.9px 0.9px at 5% 67%, rgba(226, 236, 255, 0.65), transparent 100%),
+        radial-gradient(1.1px 1.1px at 23% 7%, rgba(255, 255, 255, 0.75), transparent 100%);
+    background-repeat: repeat;
+    background-size:
+        401px 401px, 401px 401px, 401px 401px,
+        233px 233px, 233px 233px, 233px 233px;
+    /* 天光：极淡的冷蓝，让黑色不「死」 */
+    box-shadow: inset 0 -120px 220px -120px rgba(38, 74, 128, 0.32);
+}
+
+/* 底层衬色同步变暗（浅色下它是 #27384c，深色里会透出来一圈蓝） */
+:root[data-theme="dark"] #home-head::before {
+    background: #04060c;
+}
+
 /* 窄屏改成上下布局：上面放标题，下面放照片卡片 */
 @media (max-width: 767px) {
     #home-head::after {
@@ -1218,6 +1252,23 @@ table:not(.hljs-ln) td:nth-child(odd) {
             #455e79 66%,
             #4a6480 100%
         );
+    }
+
+    /* 深色移动端的首屏同样用星空，否则上面那条竖排蓝色渐变会盖掉星空。
+       放在这条媒体查询【之后】，靠同特异性 + 后出现来覆盖。 */
+    :root[data-theme="dark"] #home-head::after {
+        background-color: #04060c;
+        background-image:
+            radial-gradient(1.5px 1.5px at 11% 17%, rgba(255, 255, 255, 0.95), transparent 100%),
+            radial-gradient(1px 1px at 7% 54%, rgba(206, 226, 255, 0.85), transparent 100%),
+            radial-gradient(0.9px 0.9px at 16% 80%, rgba(255, 240, 214, 0.7), transparent 100%),
+            radial-gradient(1.2px 1.2px at 19% 31%, rgba(255, 255, 255, 0.8), transparent 100%),
+            radial-gradient(0.9px 0.9px at 5% 67%, rgba(226, 236, 255, 0.65), transparent 100%),
+            radial-gradient(1.1px 1.1px at 23% 7%, rgba(255, 255, 255, 0.75), transparent 100%);
+        background-repeat: repeat;
+        background-size:
+            401px 401px, 401px 401px, 401px 401px,
+            233px 233px, 233px 233px, 233px 233px;
     }
 
     /* 手机：照片作为卡片放在下半屏 */

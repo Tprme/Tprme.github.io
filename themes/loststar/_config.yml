@@ -133,8 +133,11 @@ card:
       name: github
       theme: brands
       link: https://github.com/Tprme
-  friendLinks:
-    CTF Wiki: https://ctf-wiki.org/
+  # 友链整块去掉。
+  # 原来这里是主题自带的示例 `CTF Wiki: https://ctf-wiki.org/`，
+  # 但本站内容是 C 语言 / Python 学习笔记，挂一条 CTF 友链对不上。
+  # card.ejs 里友链是 `<% if (theme.card.friendLinks) { %>` 包着的，
+  # 所以直接不写 friendLinks 这个键，区块（连同它的 border-top）就都不会出现。
 
 # 页脚
 footer:

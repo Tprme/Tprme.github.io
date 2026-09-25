@@ -3,9 +3,7 @@ const app = Vue.createApp({
     data() {
         return {
             loading: true,
-            hiddenMenu: false,
             showMenuItems: false,
-            menuColor: false,
             scrollTop: 0,
             renderers: [],
         };
@@ -37,17 +35,18 @@ const app = Vue.createApp({
             for (let i of this.renderers) i();
         },
         /* 这个回调以前每次滚动都写 hiddenMenu / menuColor /
-           #home-posts-wrap 的 top。三者在 custom.css 里都已经被完全覆盖，
-           改了看不出任何区别：
-             - #menu.hidden 被钉在 bottom:10px（底栏常驻，不再收起）
-             - #menu.menu-color 的背景色和文字色都被覆盖
-             - #home-posts-wrap { top: 0 !important } 压掉了视差
-           代价却是实打实的：Vue 的 :class 绑定在 hiddenMenu / menuColor 变化时
-           会用 el.className = ... 整体重写 #menu 的 class 属性。
-           实测（390x844 模拟手机，3 秒滚动）改写 204 次 / 共 205 帧，
-           而每次改写都卡在「手指刚开始滑」的时刻 ——
-           这就是「每次起手闪一下」的来源。
-           现在只保留唯一真正有视觉作用的动作：
+           #home-posts-wrap 的 top。三者现在都已删除：
+             - #menu.hidden    —— 导航改成常驻底栏，不再收起
+             - #menu.menu-color —— 首页和文章页是同一套玻璃胶囊
+             - 视差             —— custom.css 里 top: 0 !important 已压掉
+           删掉的真正原因不是「没用」，而是「有害」：
+           #menu 的 class 当时由 Vue 的 :class 绑定，
+           hiddenMenu / menuColor 一变化，Vue 就用 el.className = ...
+           整体重写 class 属性 —— 实测（390x844 模拟手机，3 秒滚动）
+           改写 204 次 / 共 205 帧，而每次改写都卡在「手指刚开始滑」
+           的那一刻，正是用户报的「每次起手闪一下」。
+           那个 :class 绑定现在也已经删掉了（menu.ejs 里只剩 <div id="menu">），
+           所以这里只保留唯一真正有视觉作用的动作：
            向下滑动时收起手机端已经展开的菜单。 */
         handleScroll() {
             const newScrollTop = document.documentElement.scrollTop;

@@ -22,10 +22,15 @@
         window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     trace.push("reduceMotion=" + reduceMotion);
 
-    /* 触屏判定。CSS 里用同一个查询把底栏固定成实色，
-       这里用它决定「滚动时还要不要做任何事」。 */
-    var isTouch = window.matchMedia && window.matchMedia("(hover: none)").matches;
-    trace.push("isTouch=" + isTouch);
+    /* 是否「确认是桌面」：支持悬停 + 精确指针（鼠标/触控板）。
+       CSS 用同一个查询决定要不要开真毛玻璃，这里决定滚动时要不要做降级 ——
+       两边必须是同一个条件，否则会出现「CSS 认为该降级、JS 却没跑」的错位。
+       注意判定的是 canHover 而不是 isTouch：默认值要落在安全的一侧。
+       浏览器谎报这两个特性时，宁可少做优化，
+       也不能把手机上不该开的东西开起来（backdrop-filter 就是这种）。 */
+    var canHover =
+        window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    trace.push("canHover=" + canHover);
 
     function safe(name, fn) {
         try {
@@ -171,16 +176,16 @@
        滚动事件是连续触发的，每次重置计时器，160ms 内没有新事件才算停。
        ============================================================ */
     function setupScrollParallax() {
-        /* 触屏上不装这个监听。
-           触屏的 #menu 已经由 CSS 永久固定成 92% 实色 + backdrop-filter: none，
+        /* 不是桌面就不装这个监听。
+           非桌面环境下 #menu 走的是 CSS 的 92% 实色安全档、没有模糊，
            滚动时本来就没有任何东西需要变 —— 实测 205/205 帧零变化。
            但这个类挂在 <html> 上，增删它会让整个文档重新匹配样式，
            而它恰好发生在「每次开始滑动」的那一刻。
-           收益为零、代价明确，所以触屏直接不跑。
-           桌面端继续保留：那里的 #menu 是真毛玻璃，
+           收益为零、代价明确，所以直接不跑。
+           桌面端保留：那里的 #menu 是真毛玻璃，
            滚动时关掉模糊确实能省下每帧的背景重采样。 */
-        if (isTouch) {
-            trace.push("scrollDegrade:skip(touch)");
+        if (!canHover) {
+            trace.push("scrollDegrade:skip(not-desktop)");
             return;
         }
         var ticking = false;
@@ -286,14 +291,58 @@
             window.setTimeout(cleanup, 900);
         }
 
+        /* ★ 只在「真正的点击」上出涟漪，绝不在「开始滑动」时出。
+           原来直接监听 pointerdown 就 spawn —— 而手机上每一次触摸
+           （包括每次开始滑动的第一下）都会触发 pointerdown。
+           于是每次滑动都会往整张文章卡里插入一层
+           position:absolute; inset:0 且带 mask-composite: exclude 的遮罩。
+           实测文章卡是 390 × 6444 ≈ 2.51M 像素；mask 合成会让 Chrome
+           为这整块区域单独分配并合成渲染表面，而它恰好卡在
+           「手指刚按下」的那一刻 —— 用户看到的就是
+           「滑了没反应，过一会儿直接跳到该到的位置，底栏也跟着闪一下」。
+           现在记下按下时的位置与时刻，抬手时只有位移很小、时间很短
+           才算点击；滑动一律不触发。 */
+        var press = null;
+
         document.addEventListener(
             "pointerdown",
             function (e) {
                 // 只响应鼠标左键 / 触摸 / 笔
-                if (e.button !== undefined && e.button !== 0) return;
-                var el = e.target && e.target.closest ? e.target.closest(RIPPLE_SELECTOR) : null;
-                if (!el) return;
-                spawn(el, e.clientX, e.clientY);
+                if (e.button !== undefined && e.button !== 0) {
+                    press = null;
+                    return;
+                }
+                var el =
+                    e.target && e.target.closest ? e.target.closest(RIPPLE_SELECTOR) : null;
+                press = el
+                    ? { el: el, x: e.clientX, y: e.clientY, t: Date.now(), id: e.pointerId }
+                    : null;
+            },
+            { passive: true }
+        );
+
+        document.addEventListener(
+            "pointerup",
+            function (e) {
+                var p = press;
+                press = null;
+                if (!p) return;
+                if (p.id !== undefined && e.pointerId !== undefined && p.id !== e.pointerId) return;
+                /* 位移超过 10px 判为滑动，超过 500ms 判为长按。
+                   阈值取宽松值：宁可不出涟漪，
+                   也不要在滑动时插入一层昂贵的遮罩。 */
+                if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) > 10) return;
+                if (Date.now() - p.t > 500) return;
+                if (!p.el.isConnected) return;
+                spawn(p.el, e.clientX, e.clientY);
+            },
+            { passive: true }
+        );
+
+        document.addEventListener(
+            "pointercancel",
+            function () {
+                press = null;
             },
             { passive: true }
         );

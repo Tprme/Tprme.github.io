@@ -586,10 +586,16 @@ a {
 #menu,
 #menu.menu-color {
     /* 用 color-mix 从 --ly-surface 推导航底色：浅色模式得到半透明白，
-       深色模式自动得到半透明深色，不必为两套主题各写一条。 */
-    background: color-mix(in srgb, var(--ly-surface) 62%, transparent);
-    backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
-    -webkit-backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
+       深色模式自动得到半透明深色，不必为两套主题各写一条。
+
+       ★ 基础值是「安全档」：92% 实色、不用 backdrop-filter。
+       真毛玻璃挪到后面的 @media (hover: hover) and (pointer: fine) 里，
+       只有能确认是桌面环境才开。理由在那条规则上方写了：
+       backdrop-filter 一旦落在手机上，代价是每帧重新采样背景，
+       表现就是滑动要等很久才响应。 */
+    background: color-mix(in srgb, var(--ly-surface) 92%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: 1px solid var(--ly-glass-stroke);
     /* 胶囊：高度 52px，半径取一半以上即可 */
     border-radius: 999px;
@@ -638,27 +644,31 @@ a {
    挂在 <html> 上就绕开了 Vue 的管辖范围。
    顺带：html.ly-scrolling #menu 特异性 (1,1,1)，能稳定压过
    #menu.menu-color (1,1,0)，不必再靠源码顺序取胜。 */
-html.ly-scrolling #menu {
-    background: color-mix(in srgb, var(--ly-surface) 94%, transparent);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
+/* ---------- 真毛玻璃只在「确认是桌面」时启用 ----------
+   条件用 and：必须同时「支持悬停」且是「精确指针」（鼠标/触控板）。
+   满足才把模糊开起来；不满足就沿用基础规则里的 92% 实色安全档。
 
-/* ---------- 触屏设备：底部导航永久不用 backdrop-filter ----------
-   为什么到这一步才这么干：JS 的滚动降级依赖 scroll 事件 + rAF，
-   实测起手后要过约 15 帧（250ms）才生效 —— 而这 250ms 正好是
-   一次滑动的开头，也就是最容易被看到闪的时刻。
-   底栏只有 52px 高，模糊在这么小的一块上几乎看不出来，
-   但它的代价（每帧重新采样并模糊背后的内容）是实打实的。
-   所以触屏上不做「用时关、停时开」的切换，直接固定：
-   92% 不透明底 + 保留描边/内阴影/高光，观感仍是玻璃，但滚动期间零变化。
-   桌面端（有 hover）继续用真模糊，不受影响。
-   注意 92% 用 color-mix 从 --ly-surface 推，深色模式自动跟着变。 */
-@media (hover: none), (pointer: coarse) {
+   ★ 为什么改成「默认关、确认是桌面才开」，
+     而不是原来的「默认开、触屏再关」：
+   原来那条 @media (hover: none), (pointer: coarse) 是补救式的 ——
+   一旦浏览器谎报这两个特性（部分安卓浏览器确实会），
+   就会落回「开着 backdrop-filter」这个危险分支：
+   它要求每一帧重新采样并模糊背后的内容，手机 GPU 上代价极大，
+   表现就是「滑了要等很久才反应过来，然后一下子跳过去」。
+   现在默认值放在安全的那一侧，谎报的代价变成「桌面少一层模糊」，
+   而不是「手机卡住」。
+
+   桌面端滚动时仍然临时关掉模糊（滚动期间每帧采样背景最贵）。 */
+@media (hover: hover) and (pointer: fine) {
     #menu,
-    #menu.menu-color,
+    #menu.menu-color {
+        background: color-mix(in srgb, var(--ly-surface) 62%, transparent);
+        backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
+        -webkit-backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
+    }
+
     html.ly-scrolling #menu {
-        background: color-mix(in srgb, var(--ly-surface) 92%, transparent);
+        background: color-mix(in srgb, var(--ly-surface) 94%, transparent);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
     }

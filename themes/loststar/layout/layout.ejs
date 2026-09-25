@@ -86,6 +86,13 @@
       CSS 的 prefers-color-scheme 分支，用户手动选的浅色就失效了。
       CSS 因此只需处理 [data-theme="dark"] 一种情况。
     %>
+    <%# 明确告诉浏览器「本站自己支持深色模式」。
+        只靠下面那段 JS 设置 style.colorScheme 是不够的：
+        部分手机浏览器（实测一加）默认开启「强制深色」，
+        它在解析阶段读不到这个声明，就会把浅色页面做算法反色 ——
+        结果整个背景变成一片纯灰，而本站的深色底是 #0f1419（深蓝黑）。
+        这个 meta 必须被浏览器尽早读到，所以放在内联脚本之前。 %>
+    <meta name="color-scheme" content="light dark" />
     <script>
         (function () {
             var dark;

@@ -18,6 +18,18 @@
        仍然用第一条（至少原生滚动条和表单控件的配色还是对的）。 */
     color-scheme: light;
     color-scheme: only light;
+
+    /* ★ 根元素必须有明确的底色，否则手机滚动会「整页闪一下」。
+       原先只有 body 有 background，html 的计算值是 rgba(0,0,0,0)（透明，已实测）。
+       按规范 body 的背景会「传播」到 canvas，桌面端因此看不出问题；
+       但手机上的合成滚动在起手那一刻由合成器接管滚动层，
+       它要从根元素取 canvas 底色 —— 根元素透明时那一帧就没有底色可画，
+       于是整个视口（连 position:fixed 的底栏）一起消失一帧再回来，
+       表现就是「每次开始滑动闪一下、底部菜单跟着闪没」。
+       这里给 html 补上和 body 相同的底色。
+       用 var() 而不是写死颜色：深色模式由下面的 token 自动切换。 */
+    background-color: var(--ly-bg);
+
     --ly-bg: #f7f8fa;
     --ly-surface: #ffffff;
     --ly-text: #1f2933;

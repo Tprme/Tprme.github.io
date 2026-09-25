@@ -707,8 +707,11 @@ a {
     overflow: hidden;
 }
 
-/* 左上角一道细窄的镜面高光，模拟玻璃边缘的反光 */
-:is(#home-posts .post, .article[data-category])::after {
+/* 左上角一道细窄的镜面高光，模拟玻璃边缘的反光。
+   只给首页卡片用 —— 文章页必须排除，原因见下面那条：
+   这个渐变的 0.4 是「渐变线长度的百分比」，而渐变线长度随盒子高度增长，
+   文章卡高四千多像素，于是顶部一大片都被压了一层约 70% 的白。 */
+#home-posts .post::after {
     background: var(--ly-glass-specular);
     content: "";
     inset: 0;
@@ -716,6 +719,23 @@ a {
     position: absolute;
 }
 
+/* 文章页卡片不再铺这层整卡镜面高光。
+   症状：「浅色模式下点开文章，上面的字很浅」。
+   机制：--ly-glass-specular = linear-gradient(132deg, rgba(255,255,255,.78), transparent 40%)
+   的 40% 是渐变线长度的百分比，渐变线长度 = |W·sinθ| + |H·cosθ|：
+     - 首页卡片高约 300px → 40% ≈ 120px，白高光很快淡掉，压在下面的正文没事；
+     - 文章卡高约 4600px → 40% ≈ 1480px，卡顶一大片都盖着约 70% 的白，
+       而标题距卡顶只有 36px、信息行紧随其后，正好整片泡在这层白里。
+   为什么之前一直没查出来（两个盲区叠在一起）：
+     1. 它是 pointer-events: none 的伪元素，elementFromPoint 返回的是 h1 本身，
+        看起来「没有任何东西盖在上面」；
+     2. 它没有 opacity / filter，文字的计算色确实是 #1f2933，
+        所以按计算样式算对比度的审计一路报「达标」。
+   实测证据（同一次截图里量像素）：标题最暗像素只有 146、信息行 184
+   （整行没有一个像素低于 150），而同色同底的正文最暗能到 115。
+   颜色没错，是上面盖了一层白。
+   去掉后卡片仍有：玻璃染色底、1px 描边、box-shadow 里的顶部内嵌高光、投影，
+   玻璃语言不缺这一层。 */
 :is(#home-posts .post, .article[data-category]):hover {
     box-shadow:
         inset 0 1px 0 var(--ly-glass-edge),
@@ -909,6 +929,33 @@ a {
 #home-posts .post .category-and-date,
 .article .info .category,
 .article .info .tags {
+    color: var(--ly-text-soft);
+}
+
+/* 文章页顶部那行信息（日期 / 分类 / 标签）别再靠 opacity 压淡。
+   主题主样式里有一条：
+     .article[data-category] .info .date,
+     .article[data-category] .info a { color: var(--tx-post-text); opacity: .7 }
+   它想做出「次要」的层级，但 opacity 是把整块内容（含颜色）一起变淡：
+     - 浅色：分类/标签链接 = rgb(127,135,149) on #fbfcfe → 3.52:1
+     - 深色：rgb(115,124,136) on #1a2029 → 3.86:1
+   都过不了 4.5:1，实际观感就是「点开文章，上面那行字很浅」。
+   更别扭的是首页卡片上同样的分类名是实色的（7.3:1），
+   同一个信息在两处的深浅不一致。
+
+   改法：把 opacity 收回 1，层级改由颜色令牌承担。
+     - 分类 / 标签链接：不指定颜色，继续走原有的配色
+       （浅色 --tx-cat-text ≈7.3:1，深色已有 !important 规则给 --ly-text-soft ≈6.4:1），
+       这样和首页卡片保持一致；
+     - 日期：单独给 --ly-text-soft（浅色 4.76:1 / 深色 6.41:1），
+       全不透明后如果沿用 --tx-post-text 会黑得和正文一样抢眼，所以要压一档颜色。
+   选择器加 :root 前缀是为了压过主题那条 (0,4,0)/(0,3,1)。 */
+:root .article[data-category] .info .date,
+:root .article[data-category] .info a {
+    opacity: 1;
+}
+
+:root .article[data-category] .info .date {
     color: var(--ly-text-soft);
 }
 

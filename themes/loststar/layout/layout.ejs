@@ -107,8 +107,26 @@
                 dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
             }
             document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-            // color-scheme 让浏览器把原生滚动条、表单控件也切成对应配色
-            document.documentElement.style.colorScheme = dark ? "dark" : "light";
+            /* color-scheme 有两层作用：
+               1. 让浏览器把原生滚动条、表单控件切成对应配色；
+               2. **必须带 only 才能禁止浏览器自作主张**。
+               只写 light / dark 的语义是「我愿意用这个」，
+               浏览器在系统深色下仍可能给浅色页面套一层「自动深色」
+               （Auto Dark Theme / Force Dark），背景会变成一片纯灰 ——
+               实测一加就是这样：手机开深色、博客里切成浅色，看到的仍是灰。
+               而 `only light` 的语义是「只支持浅色，不许覆盖」，
+               这正是 MDN 上给出的关闭 Chrome 自动深色主题的写法。
+               `only` 是比较新的关键字，先用 CSS.supports 探一下，
+               不支持就退回不带 only 的写法（至少原生控件配色还是对的）。 */
+            var canOnly = window.CSS && CSS.supports && CSS.supports("color-scheme", "only light");
+            var scheme = (canOnly ? "only " : "") + (dark ? "dark" : "light");
+            document.documentElement.style.colorScheme = scheme;
+            /* meta 也要同步改。它静态写的是 "light dark"，
+               浏览器在解析阶段看到「两种都支持」，会先按系统深色渲染一帧，
+               再被上面的 inline style 纠正 —— 那就是一次闪烁。
+               直接改成当前实际使用的 scheme，从源头避免。 */
+            var metaScheme = document.querySelector('meta[name="color-scheme"]');
+            if (metaScheme) metaScheme.setAttribute("content", scheme);
         })();
     </script>
     <%# 移动端优化：
@@ -133,6 +151,12 @@
                加载层永远挡住页面（踩过这个坑）。显隐完全交给 v-show 控制。 %>
             <div id="loading" v-show="loading" aria-hidden="true">
                 <div id="loading-circle">
+                    <%# 三点呼吸的加载指示。
+                        用真实元素而不是伪元素：::before / ::after 只有两个，
+                        画不下三个点；塞进一个 background-image 又没法让
+                        每个点独立延时（错开的节奏正是这个动效的关键）。
+                        aria-hidden：纯装饰，语义由下面的文字承担。 %>
+                    <div class="ly-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div>
                     <%# 这里不能用 <h2>：加载层虽然会被 v-show 隐藏，
                         但它始终留在 DOM 里，于是「加载中」会一直出现在
                         document outline 里，把标题层级从 h1 顶上多出一级。

@@ -7,13 +7,17 @@
    ============================================================ */
 
 :root {
-    /* 声明本站自己处理深色，别让浏览器用「强制深色」去猜。
-       部分手机浏览器（实测一加）会把浅色页面做算法反色，
-       结果背景变成一片纯灰，而不是下面配的 #0f1419。
-       layout.ejs 里另有一条 <meta name="color-scheme"> 负责在
-       HTML 解析阶段就让浏览器知道这件事（那条更早、更关键），
-       这里这条管的是 CSS 生效期间的滚动条/表单控件配色。 */
+    /* 声明本站自己处理深色，并且**禁止浏览器覆盖**。
+       只写 light / dark 的语义是「我愿意用这个」，
+       浏览器在系统深色下仍可能给浅色页面套一层自动深色，
+       背景会变成一片纯灰（实测一加浏览器）。
+       加上 only 才是「只支持浅色，不许覆盖」——
+       这是 MDN 上给出的关闭 Chrome 自动深色主题的写法：
+       https://mdn.org.cn/en-US/docs/Web/CSS/color-scheme
+       写两条是为了渐进回退：不认识 only 的浏览器会丢弃第二条，
+       仍然用第一条（至少原生滚动条和表单控件的配色还是对的）。 */
     color-scheme: light;
+    color-scheme: only light;
     --ly-bg: #f7f8fa;
     --ly-surface: #ffffff;
     --ly-text: #1f2933;
@@ -110,7 +114,10 @@
    否则同一套变量要在两处重复定义，改一处忘一处就会不一致。
    ============================================================ */
 :root[data-theme="dark"] {
+    /* 深色这边同理：本站的深色是手绘的，不需要浏览器再「帮忙」加深，
+       加上 only 避免它对已经深色的页面再做一次自动深色处理。 */
     color-scheme: dark;
+    color-scheme: only dark;
     --ly-bg: #0f1419;
     --ly-surface: #1a2029;
     --ly-text: #e4e8ee;
@@ -456,47 +463,68 @@ a {
     text-align: center;
 }
 
-/* 旋转光环：用 conic-gradient 做出「缺口」效果。
-   改版要点：
-   1. 尺寸 76 → 60px、线宽 4 → 3px。原来 76px 的环配 17px 的文字，
-      比例偏大、视觉重心整个压在环上，文字成了附属。
-   2. 渐变的中间色不再硬编码 rgba(59,130,246,.15)，改用 color-mix
-      从 --ly-accent 推。那个硬编码值是按浅色主题挑的，
-      深色模式下会偏暗、和末尾的 --ly-accent 之间出现断档。 */
-#loading-circle::before {
-    animation: ly-spin 0.9s linear infinite;
-    background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        color-mix(in srgb, var(--ly-accent) 15%, transparent) 200deg,
-        var(--ly-accent) 340deg,
-        var(--ly-accent) 360deg
-    );
+/* ---------- 加载指示：三点呼吸 ----------
+   参考的是 OPPO ColorOS 那条「呼吸感」的思路：不转，而是让几个点
+   依次上浮、放大、变实再落回，缓动用 ease-in-out。
+   选它的理由：动作幅度小、节奏柔和，和站点克制的调性一致；
+   而且下面这些动画**只用 transform / opacity**，都是合成属性，
+   不触发重排重绘 —— 之前那个旋转环还带 conic-gradient + mask 裁剪，
+   绘制成本明显更高。
+
+   实现要点：
+   1. 三个点的延时依次错开 0.15s，形成「波」而不是一起跳；
+   2. 用真实元素而不是伪元素：::before / ::after 只有两个，画不下三个点；
+      塞进一个 background-image 又没法让每个点独立延时。
+   3. 关键帧里把 0% / 62% / 100% 都设成静止态，只在 28% 处上浮 ——
+      这样每个点有约 60% 的时间在「休息」，比一直动更安静。 */
+.ly-loading-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 30px;
+    margin-bottom: 16px;
+}
+
+.ly-loading-dots i {
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    content: "";
-    height: 60px;
-    margin-bottom: 20px;
-    position: relative;
-    width: 60px;
-    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
-    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+    background: var(--ly-accent);
+    animation: ly-dot-breathe 1.25s ease-in-out infinite;
 }
 
-@keyframes ly-spin {
-    to {
-        transform: rotate(360deg);
+.ly-loading-dots i:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.ly-loading-dots i:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes ly-dot-breathe {
+    0%,
+    62%,
+    100% {
+        opacity: 0.4;
+        transform: translateY(0) scale(1);
+    }
+
+    28% {
+        opacity: 1;
+        transform: translateY(-8px) scale(1.15);
     }
 }
 
-/* 尊重系统的「减少动态效果」设置 */
+/* 尊重系统的「减少动态效果」设置：把节奏放慢，而不是直接停掉。
+   完全静止的加载页会让人以为卡死了。 */
 @media (prefers-reduced-motion: reduce) {
-    #loading-circle::before {
-        animation-duration: 2.4s;
+    .ly-loading-dots i {
+        animation-duration: 2.6s;
     }
 }
 
-/* 标题与副标题的行距收紧一档：环变小之后，原来 17px + 8px 下边距
-   显得文字块太散，和环不成比例。 */
+/* 标题与副标题的行距收紧一档：指示器变小之后，原来 17px + 8px 下边距
+   显得文字块太散，和上面的点不成比例。 */
 #loading-circle h2,
 #loading-circle .ly-loading-title {
     color: var(--ly-text);

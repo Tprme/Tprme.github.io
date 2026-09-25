@@ -340,14 +340,32 @@
     z-index: 2;
 }
 
-/* 复制按钮：右上角 */
+/* 复制按钮：右上角。
+   ★ 尺寸必须画在 .copycode 自己身上，不能靠内部图标撑出来。
+   主题的写法是 .copycode 里没有常规流内容（两个图标都是 position:absolute），
+   只有 padding: 3px 5px —— 实测盒子只有 10x6。
+   点击靠图标冒泡确实能用，但加了 role="button" 之后，
+   辅助技术报出来的就是一个 10x6 的按钮，焦点环也无处可画。
+   改成自身 40x40 的网格容器、两个图标叠在同一格里
+   （保留交叉淡入：flex 会让它们并排），图标不再需要 padding 定位。
+   图标中心从距上/右各约 22px 变成 20px，视觉上几乎不动。 */
 .code-block .copycode {
     color: var(--ly-text-soft);
     cursor: pointer;
+    display: grid;
+    height: 40px;
+    place-items: center;
     position: absolute;
     right: 0;
     top: 0;
+    width: 40px;
     z-index: 2;
+}
+
+.code-block .copycode i {
+    grid-area: 1 / 1;
+    padding: 0;
+    position: static;
 }
 
 .code-block .copycode:hover {
@@ -1107,12 +1125,25 @@ html.ly-glass-lit #menu::after {
 
 .code-block .copycode {
     border-radius: 6px;
-    padding: 3px 5px;
+    padding: 0;
     transition: box-shadow 0.2s ease, color 0.2s ease;
 }
 
 .code-block .copycode:hover {
     box-shadow: var(--ly-glass-inset);
+}
+
+/* ---------- 键盘焦点可见性 ----------
+   这两个是自定义控件（div + role="button"），浏览器不会给它们默认的焦点环。 */
+.code-block .copycode:focus-visible {
+    outline: 2px solid var(--ly-accent);
+    outline-offset: -2px;
+}
+
+#menu #mobile-menu .title:focus-visible {
+    border-radius: 8px;
+    outline: 2px solid var(--ly-accent);
+    outline-offset: -4px;
 }
 
 /* ---------- 归档页本地搜索框 ----------

@@ -11,9 +11,10 @@
         <div class="icon-links">
             <% Object.entries(theme.card.iconLinks).forEach(([key, value]) => { %>
             <span class="icon-link">
-                <a href="<%- url_for(value.link) %>">
+                <a href="<%- url_for(value.link) %>" aria-label="<%= key %>">
                     <i
                         class="fa-<%- value.theme %> fa-<%- value.name %> fa-fw"
+                        aria-hidden="true"
                     ></i>
                 </a>
             </span>

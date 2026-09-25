@@ -14,12 +14,28 @@
         </button>
     </nav>
     <nav id="mobile-menu">
-        <div class="title" @click="showMenuItems = !showMenuItems">
-            <i class="fa-solid fa-bars fa-fw"></i>
+        <!-- 这里原来是 <div class="title" @click>：键盘用户完全打不开菜单，
+             辅助技术也不会把它报成按钮。加 role/tabindex 而不是换成 <button>，
+             是因为 <button> 默认是 inline-block，会把这一行的点击区域从
+             「整行宽」缩成「内容宽」，手机上的可点范围反而变小。
+             role="button" 不会像真按钮那样在回车/空格时触发 click，
+             所以键盘事件必须自己接。 -->
+        <div
+            class="title"
+            role="button"
+            tabindex="0"
+            aria-controls="mobile-menu-items"
+            aria-label="导航菜单"
+            :aria-expanded="showMenuItems ? 'true' : 'false'"
+            @click="showMenuItems = !showMenuItems"
+            @keydown.enter.prevent="showMenuItems = !showMenuItems"
+            @keydown.space.prevent="showMenuItems = !showMenuItems"
+        >
+            <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
             <span>&emsp;<%= config.title.toUpperCase() %></span>
         </div>
         <transition name="slide">
-            <div class="items" v-show="showMenuItems">
+            <div class="items" id="mobile-menu-items" v-show="showMenuItems">
                 <% Object.entries(theme.menu).forEach(([key, value]) => { %>
                 <a href="<%- url_for(value.link) %>">
                     <div class="item">

@@ -54,17 +54,20 @@ mixins.highlight = {
                 toolbar.className = "code-toolbar";
                 toolbar.innerHTML = `
                     ${language ? `<div class="language">${language}</div>` : ""}
-                    <div class="copycode" title="复制代码">
-                        <i class="fa-solid fa-copy fa-fw"></i>
-                        <i class="fa-solid fa-check fa-fw"></i>
+                    <div class="copycode" role="button" tabindex="0" aria-label="复制代码" title="复制代码">
+                        <i class="fa-solid fa-copy fa-fw" aria-hidden="true"></i>
+                        <i class="fa-solid fa-check fa-fw" aria-hidden="true"></i>
                     </div>
                 `;
                 wrapper.insertBefore(toolbar, i);
 
                 let copycode = toolbar.querySelector(".copycode");
-                copycode.addEventListener("click", async () => {
-                    if (this.copying) return;
-                    this.copying = true;
+                /* 用闭包变量而不是 this.copying：后者是所有代码块共用的，
+                   复制 A 块会把 B 块也锁住 1 秒。 */
+                let copying = false;
+                const doCopy = async () => {
+                    if (copying) return;
+                    copying = true;
                     copycode.classList.add("copied");
                     try {
                         await navigator.clipboard.writeText(code);
@@ -73,7 +76,16 @@ mixins.highlight = {
                     }
                     await this.sleep(1000);
                     copycode.classList.remove("copied");
-                    this.copying = false;
+                    copying = false;
+                };
+                copycode.addEventListener("click", doCopy);
+                /* role="button" 的元素不会像真按钮那样在回车/空格时触发 click，
+                   必须自己接键盘事件，否则键盘用户按下去没有任何反应。 */
+                copycode.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                        e.preventDefault();
+                        doCopy();
+                    }
                 });
             }
         },

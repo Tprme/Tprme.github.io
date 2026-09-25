@@ -1232,13 +1232,13 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 
 /* ---------- 深色模式的星空首屏 ----------
-   浅色下这块是蓝灰渐变面板；深色下换成夜空 + 星点。
+   浅色下这块是白底点阵（见前面那条 #home-head::after）；深色下换成夜空 + 星点。
    星空用多层 background-image 叠加，每层是一张「带一颗星的透明小图」，
    靠 background-size 平铺：
-     - 三层不同周期(173/97/59px)互相错开，避免出现整齐的网格感；
-     - 每层用不同的 background-position 把星点打散；
+     - 两层周期(401/233px)互相错开，避免出现整齐的网格感；
+     - 每层星点位置不同，把点打散；
      - radial-gradient 的透明区很大，所以平铺后是稀疏的点，不是圆圈。
-   此外叠一层极淡的冷蓝径向光晕，模拟天光。
+   此外叠一层极淡的冷蓝光晕当「天光」。
    纯 CSS 实现：不引额外脚本、不依赖 canvas，也不增加请求。 */
 :root[data-theme="dark"] #home-head::after {
     background-color: #04060c;
@@ -1575,4 +1575,85 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 :root[data-theme="dark"] #home-head #home-info .info .wrap .ly-subtitle {
     opacity: 0.86;
+}
+
+/* ============================================================
+   深色模式的流星
+   ------------------------------------------------------------
+   在星空上时不时划过的流星。整体默认隐藏，只有深色模式显示。
+   结构：
+     .ly-meteor-field  覆盖首屏、overflow:hidden 裁掉飞出去的拖尾
+     .ly-meteor        一条细长光带，用 background 做「一头亮一头透明」的拖尾
+   动画用 clip-path 把光带裁成斜角矩形 —— 这样 background 也跟着斜，
+   不必去凑渐变色标的角度（直接旋转渐变很容易把方向做反）。
+   两条流星的周期用质数(7s/11s)并错开相位，才不会看起来像定时器。
+   ============================================================ */
+.ly-meteor-field {
+    display: none;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+:root[data-theme="dark"] .ly-meteor-field {
+    display: block;
+}
+
+.ly-meteor {
+    animation: ly-meteor-fall 7s linear infinite;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(203, 226, 255, 0.5) 58%,
+        rgba(255, 255, 255, 0.95) 100%
+    );
+    /* 斜角矩形：右侧是流星头部 */
+    clip-path: polygon(0 0, 100% 92%, 100% 100%, 0 8%);
+    height: 18px;
+    left: 6%;
+    opacity: 0;
+    position: absolute;
+    top: 12%;
+    width: 240px;
+}
+
+/* 第二条：周期更长、起点与高度不同，避免与第一条同步出现 */
+.ly-meteor:nth-child(2) {
+    animation-delay: 3.5s;
+    animation-duration: 11s;
+    height: 14px;
+    left: 2%;
+    top: 26%;
+    width: 180px;
+}
+
+@keyframes ly-meteor-fall {
+    /* 大部分时间不可见，只在中间一小段划过 */
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0);
+    }
+    3% {
+        opacity: 1;
+    }
+    16% {
+        opacity: 1;
+    }
+    20% {
+        opacity: 0;
+        transform: translate3d(66vw, 42vh, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(66vw, 42vh, 0);
+    }
+}
+
+/* 尊重「减少动效」偏好：流星属于纯装饰，直接不显示 */
+@media (prefers-reduced-motion: reduce) {
+    .ly-meteor-field {
+        display: none !important;
+    }
 }

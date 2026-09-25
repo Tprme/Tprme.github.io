@@ -8,6 +8,13 @@
         这样它可以固定占视口宽度的一部分，边缘羽化(mask)才能稳定地落在照片上，
         不会随窗口尺寸变化而错位。 %>
     <img id="home-photo" src="<%- url_for(theme.background[0]) %>" alt="" aria-hidden="true" />
+    <%# 流星层：只在深色模式的星空上出现（浅色模式整体隐藏，见 custom.css）。
+        用独立容器而不是 #home-head 的伪元素 —— 那两个已经被
+        ::before(衬色) 和 ::after(星空/点阵) 占用了。 %>
+    <div class="ly-meteor-field" aria-hidden="true">
+        <span class="ly-meteor"></span>
+        <span class="ly-meteor"></span>
+    </div>
     <div id="home-info" @click="homeClick">
         <span class="loop"></span>
         <span class="loop"></span>

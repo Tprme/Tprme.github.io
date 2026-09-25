@@ -36,34 +36,28 @@ const app = Vue.createApp({
         render() {
             for (let i of this.renderers) i();
         },
-        /* 手机上滚动时 scrollTop 会来回抖（手指的微小反向、动量回弹、
-           子像素取整）。原来写的是「只要比上一次大 1px 就算往下滚」，
-           于是 hiddenMenu 几乎每帧都在 true/false 之间翻。
-           而 #menu 的 class 是 Vue 绑定的（menu.ejs 的 :class），
-           Vue 重渲染会用 el.className = ... 把整个 class 属性重写一遍，
-           顺手抹掉 glass.js 用 classList.add 加的 ly-scrolling。
-           结果 backdrop-filter 以 60+Hz 在 blur(16px) 和 none 之间横跳 ——
-           这就是「上下滑动一闪一闪」。
-           实测：3 秒滚动里 #menu 的 class 被改写 204 次 / 共 205 帧。
-           加 8px 死区，只有真的滚过 8px 才认为方向变了。 */
+        /* 这个回调以前每次滚动都写 hiddenMenu / menuColor /
+           #home-posts-wrap 的 top。三者在 custom.css 里都已经被完全覆盖，
+           改了看不出任何区别：
+             - #menu.hidden 被钉在 bottom:10px（底栏常驻，不再收起）
+             - #menu.menu-color 的背景色和文字色都被覆盖
+             - #home-posts-wrap { top: 0 !important } 压掉了视差
+           代价却是实打实的：Vue 的 :class 绑定在 hiddenMenu / menuColor 变化时
+           会用 el.className = ... 整体重写 #menu 的 class 属性。
+           实测（390x844 模拟手机，3 秒滚动）改写 204 次 / 共 205 帧，
+           而每次改写都卡在「手指刚开始滑」的时刻 ——
+           这就是「每次起手闪一下」的来源。
+           现在只保留唯一真正有视觉作用的动作：
+           向下滑动时收起手机端已经展开的菜单。 */
         handleScroll() {
-            let wrap = this.$refs.homePostsWrap;
-            let newScrollTop = document.documentElement.scrollTop;
+            const newScrollTop = document.documentElement.scrollTop;
             const DEADZONE = 8;
-            const delta = newScrollTop - this.scrollTop;
-            if (delta > DEADZONE) {
-                if (!this.hiddenMenu) this.hiddenMenu = true;
+            if (newScrollTop - this.scrollTop > DEADZONE) {
+                /* 只在真的展开着的时候才赋值，避免无谓的重渲染 */
                 if (this.showMenuItems) this.showMenuItems = false;
                 this.scrollTop = newScrollTop;
-            } else if (delta < -DEADZONE) {
-                if (this.hiddenMenu) this.hiddenMenu = false;
+            } else if (this.scrollTop - newScrollTop > DEADZONE) {
                 this.scrollTop = newScrollTop;
-            }
-            if (wrap) {
-                const shouldColor = newScrollTop <= window.innerHeight - 100;
-                if (this.menuColor !== shouldColor) this.menuColor = shouldColor;
-                wrap.style.top =
-                    newScrollTop <= 400 ? "-" + newScrollTop / 5 + "px" : "-80px";
             }
         },
     },

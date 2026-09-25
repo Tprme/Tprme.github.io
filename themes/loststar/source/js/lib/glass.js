@@ -22,6 +22,11 @@
         window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     trace.push("reduceMotion=" + reduceMotion);
 
+    /* 触屏判定。CSS 里用同一个查询把底栏固定成实色，
+       这里用它决定「滚动时还要不要做任何事」。 */
+    var isTouch = window.matchMedia && window.matchMedia("(hover: none)").matches;
+    trace.push("isTouch=" + isTouch);
+
     function safe(name, fn) {
         try {
             fn();
@@ -166,6 +171,18 @@
        滚动事件是连续触发的，每次重置计时器，160ms 内没有新事件才算停。
        ============================================================ */
     function setupScrollParallax() {
+        /* 触屏上不装这个监听。
+           触屏的 #menu 已经由 CSS 永久固定成 92% 实色 + backdrop-filter: none，
+           滚动时本来就没有任何东西需要变 —— 实测 205/205 帧零变化。
+           但这个类挂在 <html> 上，增删它会让整个文档重新匹配样式，
+           而它恰好发生在「每次开始滑动」的那一刻。
+           收益为零、代价明确，所以触屏直接不跑。
+           桌面端继续保留：那里的 #menu 是真毛玻璃，
+           滚动时关掉模糊确实能省下每帧的背景重采样。 */
+        if (isTouch) {
+            trace.push("scrollDegrade:skip(touch)");
+            return;
+        }
         var ticking = false;
         var stopTimer = null;
 

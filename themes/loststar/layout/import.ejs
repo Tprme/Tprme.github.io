@@ -2,13 +2,19 @@
   资源全部本地自托管，不再依赖 cdnjs / Google Fonts。
   原因：这两家在国内网络下不稳定甚至不可达，
   Vue 加载失败会让页面永远停在「加载中」，Font Awesome 失败则所有图标消失。
-  本地文件见 themes/loststar/source/js/lib/ 与 source/css/fontawesome/。
+  本地文件见 themes/loststar/source/js/lib/。
+  图标已经不用 Font Awesome 了：见下面那条说明和 scripts/ly-icon.js。
 
   自托管资源一律用 asset_url 而不是 url_for：它会拼上文件内容的短 hash，
   避免 GitHub Pages 的 max-age=600 造成「新 HTML 配旧 CSS」。
   详见 scripts/asset-version.js。
 %>
-<link rel="stylesheet" href="<%- asset_url("/css/fontawesome/css/all.min.css") %>" />
+<%#
+  这里原先有一行加载 Font Awesome 的 all.min.css。
+  全站只用得到 12 个图标，却要付 152.7 KB 的图标字体（压不动）
+  + 22 KB 的 CSS，所以改成由 scripts/ly-icon.js 在构建时
+  把这些 <i class="fa-..."> 替换成内联 SVG，Font Awesome 整个不再加载。
+  图标清单与路径见该脚本（取自 Font Awesome Free 6.5.2 官方 SVG）。 %>
 <script src="<%- asset_url("/js/lib/vue.min.js") %>"></script>
 <script> const mixins = {}; </script>
 <% if (theme.polyfill.enable) { %>
@@ -67,11 +73,12 @@
 <script src="<%- asset_url("/js/lib/stars.js") %>"></script>
 <% } %>
 <link rel="stylesheet" href="<%- asset_url("/css/main.css") %>" />
-<!-- 把首页背景图路径暴露给 CSS，用于首屏的模糊衬底 -->
-<style>
-    :root {
-        --ly-bg-image: url("<%- url_for(theme.background[0]) %>");
-    }
-</style>
+<%#
+  这里原先有一段内联 <style> 输出 --ly-bg-image: url(theme.background[0])，
+  注释写的是「给 CSS 当首屏模糊衬底用」。全仓搜过（含所有 css 与 js），
+  这个变量只有赋值、没有任何地方读它 —— 是死代码，删掉。
+  顺带：它和 system 里 #home-background 的 <img>/background 也没有关系，
+  那两处各自直接用 theme.background[0]。
+%>
 <!-- 本站自定义配色覆盖，必须放在 main.css 之后 -->
 <link rel="stylesheet" href="<%- asset_url("/css/custom.css") %>" />

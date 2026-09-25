@@ -7,7 +7,7 @@ avatar: /images/me.jpg
 # 首页背景图（竖版原图，配合 CSS 的 contain 完整显示）
 # 同样避免与主题自带的 background.jpg / bg-main.jpg 重名
 background:
-  - /images/hero.jpg
+  - /images/hero.webp
 
 # 加载动画
 loading: /images/loading.gif

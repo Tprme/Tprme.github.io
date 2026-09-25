@@ -570,6 +570,31 @@ a {
     margin: 0;
 }
 
+/* ---------- 图标：内联 SVG 取代 Font Awesome ----------
+   原来为了全站 12 个图标，每页要付 152.7 KB 的图标字体
+   （woff2 内部已经是 brotli，gzip 压不动）+ 约 22 KB 的 CSS。
+   现在由 scripts/ly-icon.js 在构建时把 <i class="fa-..."> 换成内联 SVG，
+   SVG 跟着 HTML 一起 gzip，几乎不额外增加体积。
+
+   尺寸与对齐刻意对齐 Font Awesome 原本的规则，保证换完不变形：
+     .fa     → display:inline-block; line-height:1; vertical-align:-.125em
+     .fa-fw  → width:1.25em; text-align:center
+   各个图标的 viewBox 宽高比不同（256/320/384/448/496/512/576），
+   靠 SVG 默认的 preserveAspectRatio="xMidYMid meet" 自动居中缩放，
+   所以固定宽度列里的对齐和原来一致。 */
+.ly-icon {
+    display: inline-block;
+    fill: currentColor;
+    height: 1em;
+    line-height: 1;
+    vertical-align: -0.125em;
+    width: 1em;
+}
+
+.ly-icon--fw {
+    width: 1.25em;
+}
+
 /* 主题自带的 loading.gif 已经不再渲染（见 layout.ejs 里删掉的那个 <img>），
    这条规则留着是为了万一模板回退也不会突然冒出一张卡通图。 */
 #loading-circle img {

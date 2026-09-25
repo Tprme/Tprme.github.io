@@ -681,6 +681,18 @@ a {
     }
 }
 
+/* 文章 / 归档页去掉顶部那 100px 留白。
+   主题里 `.article { margin-top: 100px }` 和 `#archives { margin-top: 100px }`
+   是用来给「固定在顶部的导航」让位的（导航 50px + 余量），
+   导航移到底部之后这 100px 就成了纯空白 —— 表现就是「点开文章，
+   内容离页面顶部还有一大段距离」。
+   这里只留 24px 作为正常的顶部呼吸，不再为已经不存在的顶部导航留位。
+   分类页 / 标签页复用的也是 #archives，一并生效。 */
+.article,
+#archives {
+    margin-top: 24px;
+}
+
 /* 手机上展开汉堡菜单时，胶囊会长成一个很高的圆角盒，
    999px 半径在这种形状上会被浏览器按比例缩到「半高」，
    变成一个 150px 大圆角的球场面，菜单项贴着弧线很难看。
@@ -1956,15 +1968,50 @@ table:not(.hljs-ln) td:nth-child(odd) {
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4.2'/%3E%3Cpath d='M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4'/%3E%3C/svg%3E");
 }
 
-@media (max-width: 767px) {
-    #theme-toggle-mobile {
-        background-image: none;
-        border: 0;
-        border-radius: 0;
-        box-shadow: none;
-        justify-content: flex-start;
-        padding: 10px 15px;
+/* 手机菜单：每一项都做成和底部导航同一套的胶囊，外观和按压反馈都统一。
+   原来这里是反过来的 —— 一条 @media (max-width:767px) 把
+   #theme-toggle-mobile 的胶囊样式（染色底/描边/圆角/内嵌高光）全部重置成
+   none/0，本意是让它「和普通菜单项看着一致」，结果变成所有项都不是胶囊；
+   更糟的是那条只重置了外观、没重置 transition，于是主题按钮仍带着
+   0.25s 过渡和 :hover 的浮起效果，而菜单项什么都没有 ——
+   点 Home 和点深色模式的反馈完全不是一个东西。
+
+   现在统一到胶囊这一侧：菜单项和主题按钮共用同一套玻璃外观与按压反馈，
+   圆角与底部导航胶囊一致（都是 999px），整块菜单读起来是一列同语言的胶囊。
+
+   两点细节：
+   1. 显式写 :active，不只靠 :hover。触屏上 hover 的触发时机各家浏览器
+      不一致（有的按下即触发、有的要点一下才触发），:active 才能保证
+      「按下去就有反馈」在所有浏览器里表现一致。
+   2. padding 归零。button 自带 UA 的默认内边距，不归零的话主题按钮
+      会比菜单项高出一截（实测 70px vs 50px），一列胶囊高矮不齐。 */
+@media (max-width: 899px) {
+    #menu #mobile-menu .items a,
+    #menu #mobile-menu .items #theme-toggle-mobile {
+        background-image: var(--ly-glass-tint);
+        border: 1px solid var(--ly-glass-stroke);
+        border-radius: 999px;
+        /* box-sizing 必须显式写：本站没有全局 border-box 重置，
+           <a> 默认 content-box 而 <button> 在多数 UA 里是 border-box，
+           两者都写 width:100% 会差出 2px 的边框宽度（实测 362 vs 360），
+           一列胶囊宽窄不齐。 */
+        box-sizing: border-box;
+        box-shadow: var(--ly-glass-inset);
+        display: flex;
+        padding: 0;
+        transition:
+            box-shadow 0.25s ease,
+            transform 0.25s ease,
+            background-color 0.25s ease;
         width: 100%;
+    }
+
+    #menu #mobile-menu .items a:hover,
+    #menu #mobile-menu .items a:active,
+    #menu #mobile-menu .items #theme-toggle-mobile:hover,
+    #menu #mobile-menu .items #theme-toggle-mobile:active {
+        box-shadow: var(--ly-glass-shadow-hover);
+        transform: translateY(-1px);
     }
 }
 

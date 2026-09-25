@@ -1597,93 +1597,161 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 
 .ly-meteor {
-    animation: ly-meteor-fall 6s linear infinite;
-    left: 4%;
+    /* 整条流星（点+尾迹）只在划过的那一小段可见 */
+    animation: ly-meteor-life 6s linear infinite;
+    height: 0;
+    /* 起点放在空旷星域的中部：标题从约 50% 高度开始、照片在右侧 60% 起，
+       所以左上到中上这块是空的。起点取 18%/16%，
+       这样尾迹的左上端离导航栏还有一段距离，不会被遮住。 */
+    left: 18%;
     opacity: 0;
     position: absolute;
-    top: 8%;
-    /* 外层只负责定位与长度，不做裁剪 —— 裁剪会连头部辉光一起剪掉 */
-    width: 300px;
-    height: 5px;
+    top: 16%;
+    width: 0;
 }
 
-/* 尾巴：右端（头部一侧）最亮，向左拉长渐隐。
-   真实的流星是「亮头 + 很长的衰减尾」，所以把衰减段拉长，
-   并在靠近头部处保留一段高亮，而不是从头到尾线性变暗。 */
-.ly-meteor-tail {
-    background: linear-gradient(
-        168deg,
-        rgba(214, 232, 255, 0) 0%,
-        rgba(206, 226, 255, 0.12) 40%,
-        rgba(226, 238, 255, 0.6) 74%,
-        rgba(255, 255, 255, 0.95) 100%
-    );
-    /* 形状：右端厚（头部）、左下收成尖（尾巴），整体向右下倾斜。
-       关键是「尖的那端必须是尾巴」：把尖点放到右上、再配合同样右亮的渐变，
-       会得到「亮头朝右上、流星却往右下飞」，看着像倒着飞。
-       高度只有 5px，光带本体约 1.5px，是一条细线。 */
-    clip-path: polygon(0 0, 30% 0, 100% 100%, 70% 100%);
-    inset: 0;
-    position: absolute;
-}
-
-/* 头部辉光 —— 这是「流星」与「一道白线」最关键的差别。
-   真实流星在头部有一个高度集中的亮点，四周还有一圈柔和辉光；
-   只做一条渐隐的线，看起来就只是一根白线。
-   放在外层（不受 tail 的 clip-path 影响），位置对齐尾巴的右下端。 */
-.ly-meteor-head {
+/* ---------- 小白点：流星的本人 ----------
+   真实流星的过程是「一个小亮点划过」，而不是一条静止的斜线。
+   点从左上向右下移动，生命很短（约 0.6s），划过即消失。 */
+.ly-meteor-dot {
+    animation: ly-meteor-dot-move 6s linear infinite;
     background: radial-gradient(
         circle at center,
         #ffffff 0%,
-        rgba(255, 255, 255, 0.9) 14%,
-        rgba(214, 232, 255, 0.45) 34%,
-        rgba(150, 190, 245, 0.14) 56%,
-        rgba(150, 190, 245, 0) 76%
+        rgba(255, 255, 255, 0.92) 30%,
+        rgba(214, 232, 255, 0.4) 55%,
+        rgba(150, 190, 245, 0) 78%
     );
     border-radius: 50%;
-    height: 16px;
+    height: 8px;
+    left: -4px;
     position: absolute;
-    right: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
+    top: -4px;
+    width: 8px;
 }
 
-/* 第二条：周期更长、位置不同，避免与第一条同步出现 */
+/* ---------- 尾迹：点飞过之后留在星空上的那条白线 ----------
+   这是「飞机尾迹」的做法，也是之前缺的那一环：
+     - 形状是一条很细的斜线，clip-path 在左下侧切一刀，
+       让它永远只有约 2px 厚；
+     - 靠 scaleX 从 0 拉到 1，就是「随着点前进而不断伸长」；
+     - transform-origin 取右上角，右端锚在点上，所以线是【从点向后】长的。
+   位置经过推算：容器偏移 + 240px 的 scaleX 正好让右上角始终贴着点，
+   斜率和点的 50/36 一致，所以点永远压在线的右端上。
+   渐变方向：靠近点的一端（右）最亮、向起点（左）渐隐 ——
+   和飞机尾迹一样「引擎处最浓、向后消散」；
+   反过来（起点亮、头部暗）看起来就像点拖着一块抹布。 */
+.ly-meteor-trail {
+    animation: ly-meteor-trail-grow 6s linear infinite;
+    background: linear-gradient(
+        100deg,
+        rgba(224, 238, 255, 0.06) 0%,
+        rgba(226, 240, 255, 0.34) 42%,
+        rgba(236, 245, 255, 0.7) 74%,
+        rgba(255, 255, 255, 1) 100%
+    );
+    clip-path: polygon(0 0, 0 12px, 100% calc(100% + 12px), 100% 100%);
+    height: 36px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transform: scaleX(0);
+    transform-origin: top right;
+    width: 240px;
+}
+
+/* 第二条：周期更长、起点不同，避免与第一条同步出现 */
 .ly-meteor:nth-child(2) {
-    animation-delay: 3.5s;
+    animation-delay: 6.7s;
     animation-duration: 9s;
-    height: 4px;
-    left: -4%;
-    top: 22%;
-    width: 230px;
+    left: 4%;
+    top: 20%;
 }
 
-.ly-meteor:nth-child(2) .ly-meteor-head {
-    height: 13px;
-    right: -5px;
-    width: 13px;
+.ly-meteor:nth-child(2) .ly-meteor-dot {
+    animation-delay: 6.7s;
+    animation-duration: 9s;
 }
 
-@keyframes ly-meteor-fall {
-    /* 大部分时间不可见，只在中间一小段划过 */
+.ly-meteor:nth-child(2) .ly-meteor-trail {
+    animation-delay: 6.7s;
+    animation-duration: 9s;
+    height: 30px;
+    width: 200px;
+}
+
+/* 点：0-2% 淡入，2-8% 保持，8-11% 淡出 —— 划过全程约 0.6s（一轮 6s 的 8%）
+   之后不再有位移，避免它「停」在终点继续亮着。
+   位移取 (240px, 140px)：斜率 140/240 与尾迹的 36/240 精确一致，
+   所以尾迹的右上角始终压在点上，不会出现错位。
+   240px 的行程也刚好让它停在标题上方，不侵入文字区。 */
+@keyframes ly-meteor-dot-move {
     0% {
         opacity: 0;
         transform: translate3d(0, 0, 0);
     }
-    3% {
+    2% {
         opacity: 1;
     }
-    16% {
+    8% {
         opacity: 1;
+        transform: translate3d(240px, 140px, 0);
     }
-    20% {
+    11% {
         opacity: 0;
-        transform: translate3d(60vw, 40vh, 0);
+        transform: translate3d(240px, 140px, 0);
     }
     100% {
         opacity: 0;
-        transform: translate3d(66vw, 42vh, 0);
+        transform: translate3d(240px, 140px, 0);
+    }
+}
+
+/* 尾迹：跟着点一起长（0-8% 由 0 拉到满长），
+   点消失后（11%）它还在，一直到 20% 才淡完 —— 这就是「留在星空上
+   停留一会儿再消失」的观感，是流星照片里最常见的样子。 */
+@keyframes ly-meteor-trail-grow {
+    0% {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    2% {
+        opacity: 1;
+    }
+    8% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+    11% {
+        opacity: 0.85;
+        transform: scaleX(1);
+    }
+    20% {
+        opacity: 0;
+        transform: scaleX(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scaleX(1);
+    }
+}
+
+/* 整条生命周期的可见区间（略长于尾迹，保证淡出完整） */
+@keyframes ly-meteor-life {
+    0% {
+        opacity: 0;
+    }
+    1% {
+        opacity: 1;
+    }
+    20% {
+        opacity: 1;
+    }
+    22% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
     }
 }
 

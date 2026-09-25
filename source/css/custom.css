@@ -561,11 +561,17 @@ a {
         0 2px 6px rgba(16, 24, 40, 0.05),
         0 10px 30px rgba(16, 24, 40, 0.1),
         inset 0 1px 0 var(--ly-glass-edge);
-    /* 浮起：四周留出空隙。左右各 14px、距顶 10px */
+    /* 浮起：四周留出空隙。左右各 14px、距底 10px。
+       必须同时写 top: auto：主题给的是 `#menu { top: 0 }`，
+       如果只写 bottom 而留下 top:0，fixed 元素在宽高 auto 的情况下
+       会被上下两条边「撑开」，变成一块盖满整页的玻璃板。
+       bottom 锚定还有个好处：菜单展开变高时是向上长，
+       底边始终贴着屏幕底部，正是底部导航该有的行为。 */
     box-sizing: border-box;
+    bottom: 10px;
     left: 14px;
     right: 14px;
-    top: 10px;
+    top: auto;
     transition: box-shadow 0.3s ease;
     width: auto;
 }
@@ -581,14 +587,98 @@ a {
 
 /* 滚动时不再收起。
    主题原本是 `#menu.hidden { top: -50px }`（向下滚动就把导航藏到屏幕外），
-   现在导航是浮在上方的胶囊，用户要的是「常驻在最上方」。
+   现在导航是浮在屏幕底部的胶囊，用户要的是常驻。
    顺带修掉一个不一致：主题那条 `.hidden` 特异性 (1,1,0)，
    和上面 `#menu.menu-color` 打平、而 custom.css 在后面，
    于是「首页会收起、文章页不会」——同一份 CSS 两种行为。
-   这里显式写死 top，两种情况都留在原地。 */
+   这里显式写死锚点，两种情况都留在原地。
+   注意 top 必须一起写成 auto：主题的 `#menu.hidden { top: -50px }`
+   特异性 (1,1,0)，不压掉的话 fixed 元素同时有 top:-50 和 bottom:10，
+   高度又是 auto，会被拉成一条从屏幕外一直到底部的长条。 */
 #menu.hidden,
 #menu.menu-color.hidden {
-    top: 10px;
+    bottom: 10px;
+    top: auto;
+}
+
+/* 底部导航的内容居中。
+   主题原本是左对齐：`.title` 有 margin-left:60px，各链接靠 margin-left:30px
+   依次往右排。这套放在顶部很自然（贴着左边读），但贴到底部之后就变成
+   「内容全挤在左边、右边空一大片」—— 实测内容只占 75..681，
+   胶囊总宽 1402，右侧空 734px，视觉重心整个偏掉。
+
+   实现方式踩过一次坑：第一版写的是 text-align:center + 把 margin-left
+   换成左右对称的 padding。结果量出来左右空隙恒定差 14px —— 因为
+   `.title` 带 padding:0 14px、而末尾的 #theme-toggle 按钮没有，
+   整组两端的不对称被居中算法放大成了固定偏移。
+   改用 flex：间距交给 gap 统一控制，居中由 justify-content 保证，
+   两端天然对称，也不用再靠手调 padding 凑数。
+
+   断点必须写 min-width:900px 且和主题一致：主题在 <900px 用的是
+   `#menu #desktop-menu { display: none }`，特异性同为 (1,1,0)，
+   我这条如果在后面且不加断点，会把手机端的桌面菜单也放出来。 */
+@media (min-width: 900px) {
+    #menu #desktop-menu {
+        align-items: center;
+        display: flex;
+        gap: 28px;
+        justify-content: center;
+    }
+
+    #menu #desktop-menu .title,
+    #menu #desktop-menu a {
+        margin-left: 0;
+        padding: 0;
+    }
+
+    /* 胶囊收窄成「内容宽度」并整体居中，而不是拉满整屏。
+       全宽版本在 1440px 下宽 1402、内容只占 610，两侧各空近 400px，
+       即使居中了也显得散；收窄后宽 632，是一个真正的悬浮胶囊，
+       而且宽度不随视口变化，形态稳定。
+
+       居中办法：fixed 元素同时给 left:0 和 right:0，再用 margin:0 auto，
+       会比 transform:translateX(-50%) 更稳（后者在子元素宽度变化时
+       容易产生半像素抖动）。
+
+       padding 不能省：fit-content 算的是内容宽，不加内边距的话
+       首尾两项会顶到胶囊的圆角边上；加了之后宽度自然包含进来。
+
+       只在桌面生效，手机端保持全宽 —— 手机屏本来就窄（362px 宽只剩
+       14px 边距，不存在「两侧太空」的问题），而且 #mobile-menu 的菜单项
+       用的是 width:80% / min-width:200px：父容器一旦变成 fit-content，
+       百分比宽度在内在尺寸计算里退化成 auto，只剩 min-width 撑着，
+       胶囊会窄成一个很奇怪的小条。 */
+    #menu,
+    #menu.menu-color {
+        left: 0;
+        margin: 0 auto;
+        padding: 0 10px;
+        right: 0;
+        width: fit-content;
+    }
+}
+
+/* 手机上的汉堡菜单改成向上展开。
+   结构是 #mobile-menu > .title（汉堡那一行）+ .items（菜单项）。
+   默认是正常文档流，items 排在 title 下面 = 往下展开 ——
+   导航贴底之后那就直接展开到屏幕外了。
+   column-reverse 会把视觉顺序倒过来：items 在上、title 在下，
+   于是汉堡始终留在底栏位置，菜单项从它上方推出来。
+   配合 #menu 的 bottom 锚定，整块胶囊就是向上生长，底边不动。
+
+   两个坑：
+   1. 必须把 display:flex 关在媒体查询里。主题在 `min-width: 900px` 下
+      有 `#menu #mobile-menu { display: none }`，特异性 (1,1,0)，
+      和我这条打平、而 custom.css 在后面 —— 无条件写就会把它覆盖掉，
+      桌面端也冒出汉堡行，胶囊被撑到 102px（实测踩过）。
+   2. 断点用 899px 而不是本文件别处常用的 767px：
+      主题显示汉堡的条件是 <900px，用 767px 的话 768~899px 这段
+      会显示汉堡却没有反向排列，菜单照样往下展开到屏幕外。 */
+@media (max-width: 899px) {
+    #menu #mobile-menu {
+        display: flex;
+        flex-direction: column-reverse;
+    }
 }
 
 /* 手机上展开汉堡菜单时，胶囊会长成一个很高的圆角盒，
@@ -1033,6 +1123,15 @@ a {
 #footer #footer-wrap {
     border-top-color: var(--ly-border);
     color: var(--ly-text-soft);
+}
+
+/* 底部导航是浮层，会盖住屏幕最下面一条。
+   不加这段话，滚到页面最底时页脚会被压在胶囊下面、永远看不全。
+   算法：胶囊距底 10px + 高 52px = 占掉视口底部 62px，
+   再留 22px 呼吸空间，所以底部内边距给 84px。
+   以后如果改胶囊高度或距底距离，这个值要跟着改。 */
+#footer {
+    padding-bottom: 84px;
 }
 
 #footer #footer-icon {
@@ -1526,10 +1625,12 @@ table:not(.hljs-ln) td:nth-child(odd) {
             233px 233px, 233px 233px, 233px 233px;
     }
 
-    /* 手机：照片作为卡片放在下半屏 */
+    /* 手机：照片作为卡片放在下半屏。
+       bottom 里额外加上底部导航占掉的 62px（10px 距底 + 52px 高），
+       否则照片下沿会被浮起来的胶囊压住一角。 */
     #home-head #home-photo {
         top: auto;
-        bottom: 5vh;
+        bottom: calc(5vh + 62px);
         right: 50%;
         margin-right: -42vw;
         transform: none;
@@ -1744,7 +1845,11 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 #theme-toggle {
     height: 32px;
-    margin: 0 14px;
+    /* margin 归零。原来写的是 `margin: 0 14px`，那是顶部导航时代
+       用来把按钮和左边那串链接拉开的；现在间距由 flex 的 gap 统一控制，
+       再留这个 margin 会让按钮「左侧 28+14=42px、右侧只有 14px」，
+       整组内容被推左 7px（实测内容中心 708 / 胶囊中心 715）。 */
+    margin: 0;
     padding: 0;
     width: 32px;
 }

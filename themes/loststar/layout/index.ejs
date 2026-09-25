@@ -13,15 +13,13 @@
         z-index 1，低于照片(2)和正文(3)，所以不会盖住内容。 %>
     <div class="ly-hero-texture" aria-hidden="true"></div>
     <%# 流星层：只在深色模式的星空上出现（浅色模式整体隐藏，见 custom.css）。
-        每条流星 = 一个划过的小白点 + 一条它留下的尾迹，两层各自独立动画：
-          - .ly-meteor-dot    小亮点，约 0.6s 从左上掠到右下后消失；
-          - .ly-meteor-trail  尾迹，随点前进由 0 伸长，点消失后仍留在
-                              星空上停留片刻才淡去（像飞机拉出的白线）。
-        之所以拆两层：点要「移动」，尾迹要「伸长 + 延后淡出」，
-        位移与缩放是两套不同的动画，合在一个元素里做不到。 %>
+        每条流星 = 尾迹 + 头部的白点，放进同一个「旋转 30° 的容器」里。
+        这样在容器自己的坐标系里路径是水平的：尾迹只是右端固定、
+        宽度从 0 长到 240 的一条水平细线，点则在容器原点（尾迹头端）。
+        容器整体位移，点与尾迹因此永远连在一起，不可能错位。 %>
     <div class="ly-meteor-field" aria-hidden="true">
-        <span class="ly-meteor"><i class="ly-meteor-trail"></i><i class="ly-meteor-dot"></i></span>
-        <span class="ly-meteor"><i class="ly-meteor-trail"></i><i class="ly-meteor-dot"></i></span>
+        <span class="ly-meteor"><i class="ly-meteor-tail"></i><i class="ly-meteor-dot"></i></span>
+        <span class="ly-meteor"><i class="ly-meteor-tail"></i><i class="ly-meteor-dot"></i></span>
     </div>
     <div id="home-info" @click="homeClick">
         <span class="loop"></span>

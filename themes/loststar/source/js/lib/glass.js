@@ -264,22 +264,37 @@
        这里只负责按钮交互与持久化，键名与那边保持一致：ly-theme。
        ============================================================ */
     function setupThemeToggle() {
-        var moon = "fa-moon";
-        var sun = "fa-sun";
-
         function isDark() {
             return document.documentElement.getAttribute("data-theme") === "dark";
         }
 
+        /* 图标用内联 SVG 遮罩（见 custom.css 的 .ly-theme-icon），
+           靠 data-icon 切换，不再依赖图标字体：
+           深色时显示太阳（表示「可切回浅色」），浅色时显示月亮。 */
         function syncIcons() {
-            var dark = isDark();
-            var icons = document.querySelectorAll("#theme-toggle i, #theme-toggle-mobile i");
-            for (var i = 0; i < icons.length; i++) {
-                icons[i].classList.toggle(moon, !dark);
-                icons[i].classList.toggle(sun, dark);
+            var icon = isDark() ? "sun" : "moon";
+            var nodes = document.querySelectorAll("#theme-toggle .ly-theme-icon, #theme-toggle-mobile .ly-theme-icon");
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].setAttribute("data-icon", icon);
             }
             var mobileLabel = document.querySelector("#theme-toggle-mobile .item div:last-child");
-            if (mobileLabel) mobileLabel.textContent = dark ? "浅色模式" : "深色模式";
+            if (mobileLabel) mobileLabel.textContent = isDark() ? "浅色模式" : "深色模式";
+        }
+
+        /* 评论是 giscus 的 iframe，有自己的主题；
+           改本站主题时必须同步通知它，否则会出现「深色站点里嵌一块白色评论区」。
+           giscus 只认 postMessage 里的 theme 字段，改 src 无效。 */
+        function syncGiscus() {
+            var frame = document.querySelector("iframe.giscus-frame");
+            if (!frame || !frame.contentWindow) {
+                trace.push("giscus:absent");
+                return;
+            }
+            frame.contentWindow.postMessage(
+                { giscus: { setConfig: { theme: isDark() ? "dark" : "light" } } },
+                "https://giscus.app"
+            );
+            trace.push("giscus:" + (isDark() ? "dark" : "light"));
         }
 
         function toggle() {
@@ -296,6 +311,7 @@
                 /* 隐私模式下写不了，忽略即可 */
             }
             syncIcons();
+            syncGiscus();
             trace.push("theme:" + (dark ? "dark" : "light"));
         }
 
@@ -309,6 +325,24 @@
 
         syncIcons();
         trace.push("themeToggle");
+
+        /* giscus 是异步加载的，切换时它可能还没就绪；
+           用 MutationObserver 等 iframe 出现后补一次同步，
+           否则「先切主题、后加载评论」的顺序下评论区还是旧主题。 */
+        try {
+            var obs = new MutationObserver(function () {
+                if (document.querySelector("iframe.giscus-frame")) {
+                    syncGiscus();
+                    obs.disconnect();
+                }
+            });
+            obs.observe(document.body, { childList: true, subtree: true });
+            window.setTimeout(function () {
+                obs.disconnect();
+            }, 15000);
+        } catch (e) {
+            trace.push("giscus:observer-failed");
+        }
     }
 
     safe("pointerGlow", setupPointerGlow);

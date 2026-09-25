@@ -1291,17 +1291,21 @@ table:not(.hljs-ln) td:nth-child(odd) {
     filter: none;
 }
 
-/* ---------- 首屏照片：卡片式 ----------
-   照片作为一张圆角卡片浮在深色面板上，不做任何羽化。
-   这样边界是干净利落的形状，而不是「糊掉一片」的过渡。
-   高度用 min() 加上限，避免窗口很高时卡片被拉得过大。 */
+/* ---------- 首屏照片：平面贴图 ----------
+   照片作为一张圆角图片放在面板上，不做任何羽化，也不加投影。
+   原来有一层 `0 24px 70px rgba(0,0,0,.5)` 的大投影，本意是让照片
+   「浮」在面板上形成卡片感，但那个方向（下方大范围黑色）读起来是
+   立体投影，和整体扁平的界面不搭，所以去掉。
+   注意：位置居中靠的是上面的 translateY(-50%)，和阴影无关，
+   去掉阴影不会影响照片位置。
+   高度用 min() 加上限，避免窗口很高时照片被拉得过大。 */
 #home-head #home-photo {
     position: absolute;
     top: 50%;
     right: 4vw;
     transform: translateY(-50%);
     /* 同时用高度和宽度约束，取更严格的那个：
-       - 高度上限 660px，避免高窗口下卡片过大
+       - 高度上限 660px，避免高窗口下照片过大
        - 宽度上限 54vw，避免矮窗口（如 1440x680 的笔记本）下照片上下溢出被裁
        宽高比由图片自身维持，所以两者同时给不会变形。 */
     height: auto;
@@ -1311,7 +1315,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
     object-fit: contain;
     object-position: center right;
     border-radius: 18px;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
     /* 用正 z-index，确保照片盖在面板渐变层(#home-head::after)之上。
        两者都是 -1 时，::after 因 DOM 顺序更靠后而会盖住照片。
        取 2 而不是 1：流星层的 z-index 是 1，而流星容器在 DOM 里比照片靠后，
@@ -1479,7 +1483,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
         max-height: 58vh;
         object-position: center center;
         border-radius: 14px;
-        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+        /* 桌面那条投影已去掉，这里保持一致，别再在手机上把立体感加回来 */
+        box-shadow: none;
     }
 
     #home-head #home-info {

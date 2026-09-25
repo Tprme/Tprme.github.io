@@ -410,9 +410,14 @@ a {
    背景由主题内联的 --tx-post-bg 决定（每个分类一套配色，由 JS 注入）,
    所以这里不改 background-color，而是叠一层同色半透明渐变：
    既保留分类配色，又获得玻璃的通透感。
-   用 currentColor 而不是白色，避免把浅色分类配色洗淡。 */
-#home-posts .post,
-.article {
+   用 currentColor 而不是白色，避免把浅色分类配色洗淡。
+
+   选择器必须写成 :is(#home-posts .post, .article[data-category])：
+   主题用的是 `.article[data-category]`（特异性 0,2,0），
+   比单纯的 `.article`（0,1,0）高，会把这条 background-image 顶掉 —— 
+   症状就是文章页的玻璃层整个消失（首页正常）。
+   用 :is() 把整体特异性提到 0,2,0 才能稳定覆盖，且不必动用 !important。 */
+:is(#home-posts .post, .article[data-category]) {
     background-image: linear-gradient(
         145deg,
         color-mix(in srgb, currentColor 4%, transparent),
@@ -429,8 +434,7 @@ a {
 }
 
 /* 左上角一道细窄的镜面高光，模拟玻璃边缘的反光 */
-#home-posts .post::after,
-.article::after {
+:is(#home-posts .post, .article[data-category])::after {
     background: linear-gradient(
         132deg,
         rgba(255, 255, 255, 0.6),
@@ -442,29 +446,29 @@ a {
     position: absolute;
 }
 
-#home-posts .post:hover {
+:is(#home-posts .post, .article[data-category]):hover {
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.9),
         0 2px 4px rgba(16, 24, 40, 0.05),
         0 16px 40px rgba(16, 24, 40, 0.11);
-}
-
-/* 悬停时玻璃整体轻微「浮起」 */
-#home-posts .post:hover,
-.article:hover {
+    /* 悬停时玻璃整体轻微「浮起」 */
     transform: translateY(-2px);
 }
 
-#home-posts .post,
-.article {
+:is(#home-posts .post, .article[data-category]) {
     transition:
         box-shadow 0.3s ease,
         transform 0.3s ease;
 }
 
-/* 列表页卡片与个人资料卡用同一套玻璃语言 */
-.timeline-content,
-#home-card #card-div {
+/* ---------- 列表页卡片 / 个人资料卡 / 评论区：同一套玻璃语言 ----------
+   选择器用 :is() 提高特异性：
+     - 主题有 `#home-card #card-style { background: #fff }`（0,2,0），
+       纯 `.timeline-content` / `#home-card #card-div`（0,1,0 或 1,0,0）
+       会被它的简写 background 顶掉 background-image；
+     - 且 #home-card #card-style 是 #card-div 的父元素，背景白色会直接盖住。
+   :is(#home-card #card-div) 让整体达到 (1,2,0)，稳定压过主题那条。 */
+:is(.timeline-content, #home-card #card-div, #comment) {
     background-image: linear-gradient(
         145deg,
         rgba(255, 255, 255, 0.55),
@@ -475,6 +479,12 @@ a {
         inset 0 1px 0 rgba(255, 255, 255, 0.85),
         0 1px 2px rgba(16, 24, 40, 0.04),
         0 10px 30px rgba(16, 24, 40, 0.07);
+}
+
+/* 资料卡的外层容器原本是纯白，会盖住内层玻璃，这里让它透明 */
+#home-card #card-style {
+    background: transparent;
+    box-shadow: none;
 }
 
 .timeline-content:hover {
@@ -550,13 +560,12 @@ a {
     padding-top: 2px;
 }
 
-/* ---------- 个人资料卡 ---------- */
-#home-card #card-div {
-    background: var(--ly-surface);
-    border: 1px solid var(--ly-border);
-    box-shadow: var(--ly-shadow);
-}
-
+/* ---------- 个人资料卡 ----------
+   注意：这里绝对不能再写 background / border / box-shadow —— 
+   `#home-card #card-div` 的特异性是 (1,1,0)，比上面那条
+   :is(.timeline-content, #home-card #card-div, #comment)（1,0,0）更高，
+   一旦在这里写简写 background，就会把玻璃层的 background-image 重置成 none，
+   症状是资料卡完全没有玻璃效果（排查时踩过这个坑）。玻璃样式统一在上面的 :is() 里。 */
 #home-card #card-div .avatar {
     border-color: var(--ly-border);
 }
@@ -602,12 +611,11 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 
 /* ---------- 文章评论区（giscus） ----------
-   主题原本没给评论区写样式，这里让它和文章卡片保持一致的观感。 */
+   主题原本没给评论区写样式。玻璃质感（背景渐变/边框/阴影）
+   统一由上面的 :is(.timeline-content, #home-card #card-div, #comment) 提供，
+   这里只负责尺寸和圆角，避免两条规则争同一个属性。 */
 #comment {
-    background: var(--ly-surface);
-    border: 1px solid var(--ly-border);
     border-radius: 15px;
-    box-shadow: var(--ly-shadow);
     box-sizing: border-box;
     margin: 25px auto 0;
     padding: 28px 30px;

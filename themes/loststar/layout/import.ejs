@@ -14,7 +14,17 @@
 <% if (theme.polyfill.enable) { %>
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=<%- theme.polyfill.features %>"></script>
 <% } %>
-<% if (theme.highlight.enable) { %>
+<%#
+  代码高亮相关资源只在「这一页真的有代码块」时才加载。
+  highlight.min.js 一个文件就 146 KB，而首页 / 归档 / 分类 / 标签 / 关于 /
+  404 都没有代码块 —— 实测每页白下 150 KB 左右。
+  page.content 是渲染后的正文 HTML，用有没有 <pre 来判断最直接；
+  归档这类列表页没有 page.content，所以要判空。
+  注意：本站代码块是服务端高亮的，但没有代码块时这些资源（含行号样式、
+  复制按钮脚本）本来就没有作用对象，所以按页跳过是安全的。
+%>
+<% var lyHasCode = typeof page !== "undefined" && page.content && /<pre[\s>]/.test(page.content); %>
+<% if (theme.highlight.enable && lyHasCode) { %>
 <script src="<%- asset_url("/js/lib/highlight.min.js") %>"></script>
 <script src="<%- asset_url("/js/lib/highlightjs-line-numbers.js") %>"></script>
 <link rel="stylesheet" href="<%- asset_url("/css/hljs-github.min.css") %>" />

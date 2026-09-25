@@ -141,10 +141,14 @@
     <meta name="theme-color" content="#27384c" />
     <meta name="format-detection" content="telephone=no,email=no,address=no" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <%# 站点图标：用真正的 .ico / .png，
-        之前直接拿头像 me.jpg 当图标，部分浏览器（尤其 Safari）不认 %>
+    <%# 站点图标。
+        第二条原来写的是 `type="image/png" href="/images/me.jpg"` ——
+        MIME 写错了（把 JPEG 声明成 PNG），更要紧的是浏览器会为了显示
+        一个 16px 的图标，在**每一页**都下载一张 400x400、66 KB 的照片。
+        实测每页 66.6 KB 就花在这里。
+        现在换成同一张头像缩出来的 64x64 PNG（12 KB），外观一致。 %>
     <link rel="icon" href="<%- url_for('/favicon.ico') %>" sizes="any" />
-    <link rel="icon" type="image/png" href="<%- url_for('/images/me.jpg') %>" />
+    <link rel="icon" type="image/png" sizes="64x64" href="<%- url_for('/images/favicon-64.png') %>" />
     <link rel="apple-touch-icon" href="<%- url_for('/apple-touch-icon.png') %>" />
     <%- partial("import", { type }) %>
 </head>
@@ -169,7 +173,12 @@
                         改用普通 div + 样式类，视觉不变，语义干净。 %>
                     <div class="ly-loading-title"><%- (theme.i18n && theme.i18n.loading_title) || 'LOADING' %></div>
                     <p><%- (theme.i18n && theme.i18n.loading_message) || 'Please wait a moment...' %></p>
-                    <img src="<%- url_for(theme.loading) %>" alt="<%- (theme.i18n && theme.i18n.loading_alt) || 'Loading' %>" />
+                    <%#
+                      这里原本还有一张 theme.loading（loading.gif，39 KB）。
+                      它早就被下面的三点呼吸取代、并且在 CSS 里 display:none 隐藏了，
+                      但「隐藏」不等于「不下载」—— 实测每页仍要花 39 KB 把它拉下来。
+                      既然已经有纯 CSS 的加载动效，这个 <img> 直接删掉。
+                    %>
                 </div>
             </div>
         </transition>

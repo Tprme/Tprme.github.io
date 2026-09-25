@@ -570,7 +570,8 @@ a {
     margin: 0;
 }
 
-/* 主题自带的 loading.gif 是个卡通图，和站点风格不搭，隐藏掉 */
+/* 主题自带的 loading.gif 已经不再渲染（见 layout.ejs 里删掉的那个 <img>），
+   这条规则留着是为了万一模板回退也不会突然冒出一张卡通图。 */
 #loading-circle img {
     display: none;
 }

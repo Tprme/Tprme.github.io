@@ -55,13 +55,13 @@
         if (!menu) return;
 
         if (reduceMotion) {
-            menu.classList.add("ly-glass-lit");
+            document.documentElement.classList.add("ly-glass-lit");
             trace.push("glow:static(reduce-motion)");
             return;
         }
         // 触屏没有 hover 概念，跟随会停在一个固定位置，只保留静态高光
         if (!(window.matchMedia && window.matchMedia("(hover: hover)").matches)) {
-            menu.classList.add("ly-glass-lit");
+            document.documentElement.classList.add("ly-glass-lit");
             trace.push("glow:static(touch)");
             return;
         }
@@ -110,9 +110,8 @@
         document.addEventListener(
             "mouseover",
             function (e) {
-                if (inMenu(e.target)) {
-                    var el = document.getElementById("menu");
-                    if (el) el.classList.add("ly-glass-lit");
+                if (inMenu(e.target) && document.getElementById("menu")) {
+                    document.documentElement.classList.add("ly-glass-lit");
                 }
             },
             { passive: true }
@@ -121,11 +120,10 @@
         document.addEventListener(
             "mouseout",
             function (e) {
-                var el = document.getElementById("menu");
-                if (!el) return;
+                if (!document.getElementById("menu")) return;
                 // relatedTarget 是移向的目标：仍在导航内就不算离开
                 if (inMenu(e.target) && !inMenu(e.relatedTarget)) {
-                    el.classList.remove("ly-glass-lit");
+                    document.documentElement.classList.remove("ly-glass-lit");
                 }
             },
             { passive: true }
@@ -142,7 +140,7 @@
         );
 
         // 初始点亮一次，避免首屏导航看着比原来「扁」
-        menu.classList.add("ly-glass-lit");
+        document.documentElement.classList.add("ly-glass-lit");
         trace.push("glow:dynamic");
     }
 
@@ -173,15 +171,23 @@
 
         function apply() {
             ticking = false;
-            var el = document.getElementById("menu");
-            if (!el) return;
-            /* classList.add 对已存在的类是 no-op，不会触发重绘，
-               所以连续滚动期间这个函数多跑几次也没关系。 */
-            el.classList.add("ly-scrolling");
+            /* 这个类必须挂在 <html> 上，绝对不能挂在 #menu 上。
+               #menu 的 class 是 Vue 绑定的（menu.ejs 的 :class），
+               Vue 每次重渲染都会执行 el.className = ...，那是「整个属性替换」，
+               会把这里 classList.add 上去的类一起抹掉。
+               实测（390x844 模拟手机，3 秒滚动）：#menu 的 class 被改写 204 次 /
+               共 205 帧，backdrop-filter 跟着在 blur(16px) 与 none 之间横跳，
+               屏幕上就是一闪一闪。
+               之前的两次修复（加深模糊、冻结样式）都是往 #menu 上加类，
+               因此全都被这个机制抹掉了 —— 这才是「改了三次都没用」的原因。
+               <html> 不在 Vue 的挂载范围内（app.mount("#layout")），不会被重写。 */
+            var root = document.documentElement;
+            if (!document.getElementById("menu")) return;
+            root.classList.add("ly-scrolling");
             if (stopTimer) window.clearTimeout(stopTimer);
             stopTimer = window.setTimeout(function () {
                 stopTimer = null;
-                el.classList.remove("ly-scrolling");
+                root.classList.remove("ly-scrolling");
             }, 160);
         }
 

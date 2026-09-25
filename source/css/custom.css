@@ -616,11 +616,40 @@ a {
    滚动时注意力在内容上，导航变实几乎察觉不到；停手 160ms 后模糊交回来。
    关键：切换只在「开始滚」和「停下来」各发生一次，不是每帧。
 
-   类名由 js/lib/glass.js 的 setupScrollParallax 添加/移除（带 160ms 防抖）。 */
-#menu.ly-scrolling {
+   类名由 js/lib/glass.js 的 setupScrollParallax 添加/移除（带 160ms 防抖）。
+
+   ★ 为什么选择器是 html.ly-scrolling #menu 而不是 #menu.ly-scrolling：
+   #menu 的 class 由 Vue 绑定（menu.ejs 的 :class="{hidden:...,'menu-color':...}"），
+   Vue 重渲染时执行 el.className = ...，是整体替换，
+   会把 JS 用 classList.add 加的类一起抹掉。
+   实测 3 秒滚动内被抹掉 204 次，backdrop-filter 随之横跳 = 闪。
+   挂在 <html> 上就绕开了 Vue 的管辖范围。
+   顺带：html.ly-scrolling #menu 特异性 (1,1,1)，能稳定压过
+   #menu.menu-color (1,1,0)，不必再靠源码顺序取胜。 */
+html.ly-scrolling #menu {
     background: color-mix(in srgb, var(--ly-surface) 94%, transparent);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+/* ---------- 触屏设备：底部导航永久不用 backdrop-filter ----------
+   为什么到这一步才这么干：JS 的滚动降级依赖 scroll 事件 + rAF，
+   实测起手后要过约 15 帧（250ms）才生效 —— 而这 250ms 正好是
+   一次滑动的开头，也就是最容易被看到闪的时刻。
+   底栏只有 52px 高，模糊在这么小的一块上几乎看不出来，
+   但它的代价（每帧重新采样并模糊背后的内容）是实打实的。
+   所以触屏上不做「用时关、停时开」的切换，直接固定：
+   92% 不透明底 + 保留描边/内阴影/高光，观感仍是玻璃，但滚动期间零变化。
+   桌面端（有 hover）继续用真模糊，不受影响。
+   注意 92% 用 color-mix 从 --ly-surface 推，深色模式自动跟着变。 */
+@media (hover: none), (pointer: coarse) {
+    #menu,
+    #menu.menu-color,
+    html.ly-scrolling #menu {
+        background: color-mix(in srgb, var(--ly-surface) 92%, transparent);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
 }
 
 /* 滚动时不再收起。
@@ -855,7 +884,11 @@ a {
     z-index: 1;
 }
 
-#menu.ly-glass-lit::after {
+/* 高光开关同样挂在 <html> 上，理由和上面的 ly-scrolling 完全一样：
+   Vue 重渲染时会重写 #menu 的 class，把 JS 加的类抹掉。
+   挂在 #menu 上时，手机上（触屏走静态高光分支，只在初始化加一次）
+   高光会在 Vue 第一次重渲染后永久消失，而且不会有任何报错。 */
+html.ly-glass-lit #menu::after {
     opacity: 1;
 }
 

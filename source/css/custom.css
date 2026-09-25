@@ -1069,42 +1069,58 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 
 /* ---------- 首屏面板（浅色）----------
-   原来是中蓝灰渐变 + 白字。改成白底后有两件事必须一起处理：
-     1) 文字要从白色换成深色，否则白底白字看不见；
-     2) 纯白太空，加一层极淡的点阵纹理 + 两团柔光。
-   点阵用「深色点」而不是浅灰点 —— 浅灰点落在白底上等于看不见
-   （和「白描边画在白卡上」是同一类错误，之前踩过）。
-   这张点阵在概念上与深色模式的星空同构：一边是暗底亮点，
-   一边是亮底暗点，两种主题因此有统一的材质语言。 */
+   底色用 --ly-bg（与下方文章区、页脚同一层灰），让照片卡片从首屏
+   到内容区是一整片连续背景 —— 原来首屏是纯白、下面 #f7f8fa，
+   两者之间有一条能看出来的分界。
+   文字必须同步改成深色（浅底上的白字会看不见）；
+   深色模式下由文件末尾的覆盖规则恢复白字。
+   纹理由独立元素 .ly-hero-texture 提供（见下）。 */
 #home-head::after {
-    background-color: #ffffff;
-    background-image:
-        /* 左上、右下各一团极淡冷光，避免大面积纯白显得寡淡 */
-        radial-gradient(
-            62% 78% at 8% 0%,
-            rgba(197, 214, 240, 0.4),
-            transparent 62%
-        ),
-        radial-gradient(
-            54% 66% at 78% 108%,
-            rgba(211, 222, 242, 0.34),
-            transparent 60%
-        ),
-        /* 点阵：用径向渐变平铺成圆点。周期要够大，太密会变成噪点 */
-        radial-gradient(
-            circle at center,
-            rgba(120, 141, 172, 0.22) 0,
-            rgba(120, 141, 172, 0.22) 1.35px,
-            transparent 1.45px
-        );
-    background-position: 0 0, 0 0, 0 0;
-    background-repeat: no-repeat, no-repeat, repeat;
-    background-size: auto, auto, 29px 29px;
+    background-color: var(--ly-bg);
     content: "";
     inset: 0;
     pointer-events: none;
     position: absolute;
     z-index: -1;
+}
+
+/* ---------- 首屏纹理：弥散色块（浅色模式）----------
+   三团不同色相的柔焦色斑，做出「极光/水彩」的柔和过渡。
+   两点实现取舍：
+     1) 不用 filter: blur() —— 滤波会创建合成层、在长页面上有额外开销。
+        改用大半径 + 长过渡的径向渐变，视觉上同样柔和，但没有滤镜成本；
+     2) 位置避开照片卡片：照片占右侧约 874px 起，所以第三团挪到 72%
+        而不是原来的 92%（那样会被照片盖掉大半）。
+   z-index 1：高于面板底色，低于照片(2)与正文(3)。 */
+.ly-hero-texture {
+    background-image:
+        radial-gradient(
+            46% 62% at 16% 22%,
+            rgba(150, 180, 226, 0.36),
+            rgba(150, 180, 226, 0.1) 45%,
+            transparent 72%
+        ),
+        radial-gradient(
+            40% 54% at 56% 84%,
+            rgba(174, 158, 224, 0.28),
+            rgba(174, 158, 224, 0.08) 46%,
+            transparent 72%
+        ),
+        radial-gradient(
+            44% 58% at 72% 4%,
+            rgba(128, 198, 206, 0.24),
+            rgba(128, 198, 206, 0.06) 44%,
+            transparent 70%
+        );
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+
+/* 深色模式有自己的星空，这层柔光不需要 */
+:root[data-theme="dark"] .ly-hero-texture {
+    display: none;
 }
 
 #home-head #home-background {
@@ -1136,8 +1152,10 @@ table:not(.hljs-ln) td:nth-child(odd) {
     border-radius: 18px;
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
     /* 用正 z-index，确保照片盖在面板渐变层(#home-head::after)之上。
-       两者都是 -1 时，::after 因 DOM 顺序更靠后而会盖住照片。 */
-    z-index: 1;
+       两者都是 -1 时，::after 因 DOM 顺序更靠后而会盖住照片。
+       取 2 而不是 1：流星层的 z-index 是 1，而流星容器在 DOM 里比照片靠后，
+       同为 1 时流星会盖到照片上（实测反馈）。 */
+    z-index: 2;
     pointer-events: none;
     /* 明确关闭羽化 */
     -webkit-mask-image: none;
@@ -1146,13 +1164,12 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 /* 首屏底色：一层纯中蓝灰面板（P2 #27384c）。
    卡片式的层次靠照片自身的圆角与阴影表达，不需要模糊衬底。 */
-/* 最底层衬色：浅色下与面板同为白色（原来是深蓝 #27384c，
-   在面板不透明的区域看不到，但四舍五入的边角会透出一圈蓝） */
+/* 最底层衬色：与面板同色，避免四舍五入的边角透出别的颜色 */
 #home-head::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: #ffffff;
+    background: var(--ly-bg);
     z-index: -2;
 }
 
@@ -1267,28 +1284,9 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 /* 窄屏改成上下布局：上面放标题，下面放照片卡片 */
 @media (max-width: 767px) {
-    /* 移动端浅色：同样是白底 + 点阵，只是柔光位置改成竖向分布 */
+    /* 移动端浅色：与桌面同一底色，纹理由 .ly-hero-texture 提供 */
     #home-head::after {
-        background-color: #ffffff;
-        background-image:
-            radial-gradient(
-                86% 60% at 50% 0%,
-                rgba(197, 214, 240, 0.42),
-                transparent 64%
-            ),
-            radial-gradient(
-                78% 56% at 50% 100%,
-                rgba(211, 222, 242, 0.36),
-                transparent 62%
-            ),
-            radial-gradient(
-                circle at center,
-                rgba(120, 141, 172, 0.22) 0,
-                rgba(120, 141, 172, 0.22) 1.35px,
-                transparent 1.45px
-            );
-        background-repeat: no-repeat, no-repeat, repeat;
-        background-size: auto, auto, 29px 29px;
+        background-color: var(--ly-bg);
     }
 
     /* 深色移动端的首屏同样用星空，否则上面那条竖排蓝色渐变会盖掉星空。
@@ -1594,6 +1592,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
     overflow: hidden;
     pointer-events: none;
     position: absolute;
+    /* 必须低于照片(2)。两者都给 1 时，因为流星容器在 DOM 里靠后，
+       流星会盖在照片上 —— 这条是实测反馈出来的问题。 */
     z-index: 1;
 }
 
@@ -1602,31 +1602,35 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 
 .ly-meteor {
-    animation: ly-meteor-fall 7s linear infinite;
+    animation: ly-meteor-fall 6s linear infinite;
+    /* 拖尾：左端透明（尾）→ 右端最亮（头） */
     background: linear-gradient(
         90deg,
         rgba(255, 255, 255, 0) 0%,
-        rgba(203, 226, 255, 0.5) 58%,
+        rgba(203, 226, 255, 0.45) 52%,
         rgba(255, 255, 255, 0.95) 100%
     );
-    /* 斜角矩形：右侧是流星头部 */
-    clip-path: polygon(0 0, 100% 92%, 100% 100%, 0 8%);
+    /* 头部在【右上】：光带整体向右上倾斜，与「向右下飞」的轨迹一致。
+       之前写成 (0 0, 100% 92%, ...) 让右端比左端低，拖尾反指右上，
+       与运动方向正好相反。
+       倾斜量 ≈ atan(18px 高 / 240px 宽) ≈ 4.3°，接近一般流星照片的观感。 */
+    clip-path: polygon(0 100%, 100% 0, 100% 34%, 0 100%);
     height: 18px;
-    left: 6%;
+    left: 4%;
     opacity: 0;
     position: absolute;
-    top: 12%;
+    top: 8%;
     width: 240px;
 }
 
-/* 第二条：周期更长、起点与高度不同，避免与第一条同步出现 */
+/* 第二条：周期更长、位置不同，避免与第一条同步出现 */
 .ly-meteor:nth-child(2) {
     animation-delay: 3.5s;
-    animation-duration: 11s;
+    animation-duration: 9s;
     height: 14px;
-    left: 2%;
-    top: 26%;
-    width: 180px;
+    left: -4%;
+    top: 22%;
+    width: 190px;
 }
 
 @keyframes ly-meteor-fall {
@@ -1643,7 +1647,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
     }
     20% {
         opacity: 0;
-        transform: translate3d(66vw, 42vh, 0);
+        transform: translate3d(60vw, 40vh, 0);
     }
     100% {
         opacity: 0;

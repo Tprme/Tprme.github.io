@@ -147,24 +147,42 @@
     }
 
     /* ============================================================
-       2) 滚动视差
+       2) 滚动期间的玻璃降级
        ------------------------------------------------------------
-       滚过一定距离后给 #menu 加 .ly-glass-scrolled，CSS 里据此
-       把模糊从 16px 提到 22px、阴影加重，让导航「浮」得更高。
-       同样用 rAF 节流 + 惰性取节点。
+       这里原本是「滚动视差」：滚过 8px 就给 #menu 加 .ly-glass-scrolled，
+       CSS 据此把模糊从 16px 提到 22px、阴影加重。那个效果已经删掉 ——
+       #menu 带 backdrop-filter，任何让它重绘的变化都会连带重新采样背景
+       做模糊，而用户上下滑动时这个变化会反复发生，就是「一闪一闪」。
+
+       但把样式冻结之后，真机上滚动**仍然会闪**。原因是 backdrop-filter
+       本身：它必须在每一帧重新采样并模糊它下面的内容（内容在滚动、一直在变），
+       这是它绕不开的成本，手机 GPU 上就表现成闪。
+
+       所以反过来做：滚动**期间**主动把模糊关掉，换成接近不透明的底。
+       滚动时人眼注意力在内容上，导航变实几乎察觉不到；
+       停手 160ms 后再把模糊交回来。
+       关键是这个切换只在「开始滚」和「停下来」各发生一次，
+       不是每帧 —— 每帧重绘才是闪的根源。
+
+       用防抖而不是直接监听 scroll 的「停止」：
+       滚动事件是连续触发的，每次重置计时器，160ms 内没有新事件才算停。
        ============================================================ */
     function setupScrollParallax() {
         var ticking = false;
-        var lastState = null;
+        var stopTimer = null;
 
         function apply() {
             ticking = false;
             var el = document.getElementById("menu");
             if (!el) return;
-            var scrolled = (window.pageYOffset || document.documentElement.scrollTop || 0) > 8;
-            if (scrolled === lastState) return;
-            lastState = scrolled;
-            el.classList.toggle("ly-glass-scrolled", scrolled);
+            /* classList.add 对已存在的类是 no-op，不会触发重绘，
+               所以连续滚动期间这个函数多跑几次也没关系。 */
+            el.classList.add("ly-scrolling");
+            if (stopTimer) window.clearTimeout(stopTimer);
+            stopTimer = window.setTimeout(function () {
+                stopTimer = null;
+                el.classList.remove("ly-scrolling");
+            }, 160);
         }
 
         function onScroll() {
@@ -178,8 +196,11 @@
         }
 
         window.addEventListener("scroll", onScroll, { passive: true });
-        apply();
-        trace.push("parallax");
+        /* 这里绝对不能调 apply()。
+           初始化时调一次会让菜单一进页面就带上 ly-scrolling，
+           玻璃效果被关掉而且没人再把它摘下来 —— 看起来就是「菜单变塑料了」。
+           只在滚动事件里加，靠 160ms 防抖自动摘掉。 */
+        trace.push("scrollDegrade");
     }
 
     /* ============================================================
@@ -333,7 +354,18 @@
             } else {
                 document.documentElement.setAttribute("data-theme", "light");
             }
-            document.documentElement.style.colorScheme = dark ? "dark" : "light";
+            /* color-scheme 交给 layout.ejs 里那份唯一实现去设。
+               这里原先自己写了一行 `style.colorScheme = dark ? "dark" : "light"`，
+               **漏了 only** —— 于是点了切换按钮之后，内联脚本设的
+               `only light` 就被这个不带 only 的值覆盖掉，
+               浏览器又开始对浅色页面做自动深色，背景变灰。
+               症状很有迷惑性：刚打开是好的，切一次主题就坏。
+               回退分支保留，以防某种情况下内联脚本没跑到。 */
+            if (window.__lyApplyColorScheme) {
+                window.__lyApplyColorScheme(dark);
+            } else {
+                document.documentElement.style.colorScheme = dark ? "dark" : "light";
+            }
             try {
                 localStorage.setItem("ly-theme", dark ? "dark" : "light");
             } catch (e) {

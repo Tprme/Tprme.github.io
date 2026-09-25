@@ -1598,30 +1598,55 @@ table:not(.hljs-ln) td:nth-child(odd) {
 
 .ly-meteor {
     animation: ly-meteor-fall 6s linear infinite;
-    /* 拖尾：右端最亮（头部，朝运动方向），向左逐渐透明（尾巴）。
-       角度 168deg 让「亮→暗」在屏幕上基本水平、只比水平略斜，
-       与光带自身的倾斜拼成一条完整斜线。 */
-    background: linear-gradient(
-        168deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(203, 226, 255, 0.42) 48%,
-        rgba(255, 255, 255, 0.95) 100%
-    );
-    /* 光带形状：右端厚（头部）、左下收成尖（尾巴），整体向右下倾斜。
-       关键在于「尖的那端必须是尾巴」：
-       上一版写成 (0 100%, 100% 0, 100% 34%, 0 100%)，尖点在【右上】，
-       再配合同样右亮的渐变，结果亮头朝右上、流星却往右下飞 ——
-       头与运动方向差约 60°，看起来像倒着飞（实测截图确认）。
-       这一版尖点在左下、头部是右下的宽端，与运动方向一致。
-       高度只有 5px：光带本体约 1.5px 厚，视觉上是「一条细线」。
-       早先用 18px，看起来像光带而不是流星；中间试过 7px 仍偏厚。 */
-    clip-path: polygon(0 0, 30% 0, 100% 100%, 70% 100%);
-    height: 5px;
     left: 4%;
     opacity: 0;
     position: absolute;
     top: 8%;
-    width: 260px;
+    /* 外层只负责定位与长度，不做裁剪 —— 裁剪会连头部辉光一起剪掉 */
+    width: 300px;
+    height: 5px;
+}
+
+/* 尾巴：右端（头部一侧）最亮，向左拉长渐隐。
+   真实的流星是「亮头 + 很长的衰减尾」，所以把衰减段拉长，
+   并在靠近头部处保留一段高亮，而不是从头到尾线性变暗。 */
+.ly-meteor-tail {
+    background: linear-gradient(
+        168deg,
+        rgba(214, 232, 255, 0) 0%,
+        rgba(206, 226, 255, 0.12) 40%,
+        rgba(226, 238, 255, 0.6) 74%,
+        rgba(255, 255, 255, 0.95) 100%
+    );
+    /* 形状：右端厚（头部）、左下收成尖（尾巴），整体向右下倾斜。
+       关键是「尖的那端必须是尾巴」：把尖点放到右上、再配合同样右亮的渐变，
+       会得到「亮头朝右上、流星却往右下飞」，看着像倒着飞。
+       高度只有 5px，光带本体约 1.5px，是一条细线。 */
+    clip-path: polygon(0 0, 30% 0, 100% 100%, 70% 100%);
+    inset: 0;
+    position: absolute;
+}
+
+/* 头部辉光 —— 这是「流星」与「一道白线」最关键的差别。
+   真实流星在头部有一个高度集中的亮点，四周还有一圈柔和辉光；
+   只做一条渐隐的线，看起来就只是一根白线。
+   放在外层（不受 tail 的 clip-path 影响），位置对齐尾巴的右下端。 */
+.ly-meteor-head {
+    background: radial-gradient(
+        circle at center,
+        #ffffff 0%,
+        rgba(255, 255, 255, 0.9) 14%,
+        rgba(214, 232, 255, 0.45) 34%,
+        rgba(150, 190, 245, 0.14) 56%,
+        rgba(150, 190, 245, 0) 76%
+    );
+    border-radius: 50%;
+    height: 16px;
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
 }
 
 /* 第二条：周期更长、位置不同，避免与第一条同步出现 */
@@ -1631,7 +1656,13 @@ table:not(.hljs-ln) td:nth-child(odd) {
     height: 4px;
     left: -4%;
     top: 22%;
-    width: 200px;
+    width: 230px;
+}
+
+.ly-meteor:nth-child(2) .ly-meteor-head {
+    height: 13px;
+    right: -5px;
+    width: 13px;
 }
 
 @keyframes ly-meteor-fall {

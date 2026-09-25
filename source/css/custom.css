@@ -427,9 +427,29 @@ figure.highlight pre,
     white-space: pre;
 }
 
-/* ---------- 全局底色与文字 / 字体 ---------- */
+/* ---------- 全局文字 / 字体 ----------
+   ★ body 必须显式 transparent，这里不能写实际颜色。
+   两个原因，第二个是踩坑踩出来的：
+
+   1) 主题 main.css 里有 `body { background: #fffdfa }`（LostStar 的奶油色默认底）。
+      本文件必须在 body 上显式覆盖，否则会露出那层奶油色。
+
+   2) 更关键：给 body 画不透明背景会直接把首屏星空盖掉。
+      星空层是 #home-head::after、z-index: -1；
+      #home-head 是 position:relative 且 z-index:auto，不构成层叠上下文，
+      所以这个负 z-index 子元素归属于【根层叠上下文】，绘制顺序是：
+        ① html 背景（canvas） → ② 负 z-index 子元素 → ③ 常规流里块的背景
+      - html 没有背景时，body 的背景会被「提升」到 canvas 去画（步骤①），
+        body 自己不再绘制，星空就能露在步骤②；
+      - 一旦给 html 写了背景（手机滚动闪屏那次修复加的），提升不再发生，
+        body 的背景落到步骤③，正好盖住步骤②的星空 —— 深色星空整个消失。
+      实测确认：::after 的 z-index 由 -1 改成 0 或 5，红色测试层立刻满屏可见；
+      保持 -1 则一个像素都看不到 —— 问题在层叠顺序，不在渐变本身。
+      所以现在：底线交给 :root（canvas 始终有明确底色，闪屏修复不受影响），
+      body 保持透明，星空就能正常显示。
+   ★ 如果以后一定要给 body 上不透明背景，必须同时把星空层改成非负 z-index。 */
 body {
-    background: var(--ly-bg);
+    background: transparent;
     color: var(--ly-text);
     font-family: var(--ly-font-sans);
     /* 系统字体没有 900 那么粗的字重，收敛到 500 避免浏览器伪加粗 */

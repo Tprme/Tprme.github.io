@@ -13,13 +13,14 @@
         z-index 1，低于照片(2)和正文(3)，所以不会盖住内容。 %>
     <div class="ly-hero-texture" aria-hidden="true"></div>
     <%# 流星层：只在深色模式的星空上出现（浅色模式整体隐藏，见 custom.css）。
-        每条流星 = 尾迹 + 头部的白点，放进同一个「旋转 30° 的容器」里。
-        这样在容器自己的坐标系里路径是水平的：尾迹只是右端固定、
-        宽度从 0 长到 240 的一条水平细线，点则在容器原点（尾迹头端）。
-        容器整体位移，点与尾迹因此永远连在一起，不可能错位。 %>
+        每条流星 = 尾迹 + 头部的白点，放进同一个「旋转 30° 的容器」里，
+        所以轨迹互相平行、都朝右下角去，点与尾迹也不会错位。
+        具体起点、周期、相位、尾巴长度由 js/lib/glass.js 逐颗随机化：
+        每次刷新都从左上角的不同位置出现，间隔也打散。 %>
     <div class="ly-meteor-field" aria-hidden="true">
+        <% for (var i = 0; i < 4; i++) { %>
         <span class="ly-meteor"><i class="ly-meteor-tail"></i><i class="ly-meteor-dot"></i></span>
-        <span class="ly-meteor"><i class="ly-meteor-tail"></i><i class="ly-meteor-dot"></i></span>
+        <% } %>
     </div>
     <div id="home-info" @click="homeClick">
         <span class="loop"></span>

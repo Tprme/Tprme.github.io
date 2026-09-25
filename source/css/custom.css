@@ -1610,18 +1610,26 @@ table:not(.hljs-ln) td:nth-child(odd) {
    角度：位移 (208, 120) → atan(120/208) = 30°。
    ============================================================ */
 .ly-meteor {
-    animation: ly-meteor-fall 10s linear infinite;
+    /* 由 js/lib/glass.js 生成，每颗给一组 CSS 变量：
+         --ly-meteor-x / -y    起点（相对首屏的百分比，落在左上角一个区域内）
+         --ly-meteor-dur       本轮周期
+         --ly-meteor-delay     出场时刻（整体错开，避免同时冒出来）
+         --ly-meteor-window    可见窗口在周期内的占比（%）
+         --ly-meteor-len       尾巴长度（逐颗随机，避免几条一模一样）
+       所有流星共用同一个 rotate(30deg) 与 100vw 位移，
+       所以轨迹互相平行，都是朝右下角去。
+       位移由容器承担、显隐由小白点承担：CSS 一个元素只能跑一条动画，
+       拆成两层才能让「点只在窗口内出现」和「一直朝右下移动」同时成立。 */
+    animation: lyMeteorFall var(--ly-meteor-dur, 8s) linear var(--ly-meteor-delay, 0s)
+        infinite;
     height: 0;
-    /* 起点在首屏左上角外侧：配合 100vw 的位移，整条轨迹贯穿全屏。
-       左侧留负值让流星「从画面外划入」，而不是凭空出现在边角。 */
-    left: -4%;
-    opacity: 0;
+    left: var(--ly-meteor-x, 2%);
     position: absolute;
-    top: -2%;
-    transform: rotate(30deg);
+    top: var(--ly-meteor-y, 2%);
+    transform: rotate(30deg) translate3d(0, 0, 0);
     transform-origin: 0 0;
     /* 只做 transform/opacity 动画，提前提层，避免掉帧 */
-    will-change: transform, opacity;
+    will-change: transform;
     width: 0;
 }
 
@@ -1632,7 +1640,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
    粗细取 2px 而不是 1.2px：低于 1.5px 时会被抗锯齿摊薄，
    在屏幕上几乎看不见（实测 1.2px 的截图上整条尾迹是空的）。 */
 .ly-meteor-tail {
-    animation: ly-meteor-tail-grow 10s linear infinite;
+    animation: lyMeteorTail var(--ly-meteor-dur, 8s) linear var(--ly-meteor-delay, 0s)
+        infinite;
     background: linear-gradient(
         90deg,
         rgba(196, 220, 255, 0) 0%,
@@ -1653,6 +1662,11 @@ table:not(.hljs-ln) td:nth-child(odd) {
    之前把头做成 9px 带一圈强辉光，看着像一颗亮球拖着光带，
    不像流星：流星体是一粒尘埃，头部应该极小、只是很亮。 */
 .ly-meteor-dot {
+    /* 显隐由点承担：窗口内可见、窗口外保持透明。
+       这样容器可以一直在「朝右下移动」，
+       而某颗流星只在自己那段时间里露脸，不会几颗同时挤在一起。 */
+    animation: lyMeteorFade var(--ly-meteor-dur, 8s) linear var(--ly-meteor-delay, 0s)
+        infinite;
     background: radial-gradient(
         circle at center,
         #ffffff 0%,
@@ -1668,32 +1682,19 @@ table:not(.hljs-ln) td:nth-child(odd) {
     width: 3px;
 }
 
-/* 第二条：周期更长、起点不同，避免与第一条同步出现。
-   两条周期取 10s / 14s（互质），所以划过的时间点不会规律重复；
-   配合 4.5s 的相位差，平均 4~6 秒能看到一颗，比之前 5s/7s 更稀疏。 */
-.ly-meteor:nth-child(2) {
-    animation-delay: 4.5s;
-    animation-duration: 14s;
-    left: 2%;
-    top: 8%;
-}
-
-.ly-meteor:nth-child(2) .ly-meteor-tail {
-    animation-delay: 4.5s;
-    animation-duration: 14s;
-}
-
 /* 容器：带着点与尾迹一起位移，所以两者不可能分家。
 
    位移用 100vw：容器已旋转 30°，沿它的 x 轴走 100vw，
    屏幕上的落点就是 (100vw·cos30, 100vw·sin30) ≈ (87vw, 50vw)，
    即从左上角一路划到右下区域，贯穿全屏。
-   之前只有 208px，所以看起来只出现在左半屏。
 
-   时间：整条存在约 1.2s（一轮 10s 的 12%），比之前的 0.5s 更从容。
-   100% 必须停在终点的同一位置且 opacity: 0，
-   否则会插值回去，看起来像流星倒着飞回来。 */
-@keyframes ly-meteor-fall {
+   时间窗：每颗流星只在自己的窗口内可见（见 --ly-meteor-dur / -delay
+   由 js/lib/glass.js 逐颗随机）。整条存在约 0.8s；
+   窗口之外 opacity 一直为 0，所以不会同时挤出一堆。
+
+   100% 必须停在终点且 opacity: 0，否则会插值回去，
+   看起来像流星倒着飞回来。 */
+@keyframes lyMeteorFall {
     0% {
         opacity: 0;
         transform: rotate(30deg) translate3d(0, 0, 0);
@@ -1701,45 +1702,64 @@ table:not(.hljs-ln) td:nth-child(odd) {
     1% {
         opacity: 1;
     }
-    12% {
+    9% {
         opacity: 1;
         transform: rotate(30deg) translate3d(100vw, 0, 0);
     }
-    13% {
-        opacity: 0;
-        transform: rotate(30deg) translate3d(100vw, 0, 0);
-    }
+    10%,
     100% {
         opacity: 0;
         transform: rotate(30deg) translate3d(100vw, 0, 0);
     }
 }
 
-/* 尾迹：0-12% 由 0 长到 360px（跟着点伸出来）。
-   点 13% 就消失，尾迹留到 26% 才淡完 ——
-   这个时间差就是「点没了、白线还留在星空上，然后才慢慢散去」。
-   尾巴由 240px 加长到 360px：位移变成 100vw 之后，
-   240px 的尾巴在全屏尺度下显得太短。 */
-@keyframes ly-meteor-tail-grow {
+/* 小白点的显隐：只在「可见窗口」内为 1，窗口外一直 0。
+   用固定百分比而不是 calc(var(...))：关键帧选择器里写 calc 只有
+   Chrome 认，Safari/Firefox 会整条失效。这里不做动态窗口 ——
+   每颗流星本来就有自己的周期与相位，把窗口固定在周期的前 24%，
+   再靠「周期 + 延迟」错开就足够稀疏了。
+   末尾的 100% 必须回到 0，否则隐形阶段会一直亮着。 */
+@keyframes lyMeteorFade {
+    0% {
+        opacity: 0;
+    }
+    1.5% {
+        opacity: 1;
+    }
+    22% {
+        opacity: 1;
+    }
+    24% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* 尾迹：0-9% 由 0 长到 90%（跟着点伸出来），点 10% 就消失，
+   尾迹留到 20% 才淡完 —— 这个时间差就是
+   「点没了、白线还留在星空上，然后才慢慢散去」。 */
+@keyframes lyMeteorTail {
     0% {
         opacity: 1;
         width: 0;
     }
-    12% {
+    9% {
         opacity: 1;
-        width: 360px;
+        width: calc(var(--ly-meteor-len, 360px) * 0.9);
     }
-    13% {
+    10% {
         opacity: 0.8;
-        width: 360px;
+        width: var(--ly-meteor-len, 360px);
     }
-    26% {
+    20% {
         opacity: 0;
-        width: 360px;
+        width: var(--ly-meteor-len, 360px);
     }
     100% {
         opacity: 0;
-        width: 360px;
+        width: var(--ly-meteor-len, 360px);
     }
 }
 

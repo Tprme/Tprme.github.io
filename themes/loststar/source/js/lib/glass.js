@@ -345,10 +345,77 @@
         }
     }
 
+    /* ============================================================
+       流星随机化
+       ------------------------------------------------------------
+       页面上放固定几个 .ly-meteor，这里给每一颗随机：
+         - 起点：落在首屏左上角的一个区域内
+         - 周期 / 相位：把自己的出场时刻在整段周期里均匀打散
+         - 尾巴长度：避免几条一模一样
+       为什么用 JS 而不是写死多条 CSS 规则：
+         随机值每次刷新都不同，而且颗数可调；
+         但运动本身仍然全部由 CSS 关键帧驱动（JS 只赋变量），
+         所以不会每帧跑 JS，性能上没有代价。
+       ============================================================ */
+    function setupMeteors() {
+        var meteors = document.querySelectorAll(".ly-meteor");
+        if (!meteors.length) {
+            trace.push("meteors:none");
+            return;
+        }
+
+        /* 总周期。每颗流星在一个周期里只出场一次，
+           所以平均间隔 = CYCLE / 颗数。
+           24s / 4 颗 ≈ 6 秒一颗 —— 配合均分+抖动，
+           既不空太久，也不会几颗挤在一起。 */
+        var CYCLE = 24; // 秒
+        var slots = [];
+
+        for (var i = 0; i < meteors.length; i++) {
+            var el = meteors[i];
+
+            /* 起点区域：首屏左上角。x 取 0~46%、y 取 0~16%，
+               这样整条轨迹都从左上来、往右下走；
+               再往右会让终点越过首屏底边太多，出画太早。 */
+            var x = Math.random() * 46;
+            var y = Math.random() * 16;
+            el.style.setProperty("--ly-meteor-x", x.toFixed(2) + "%");
+            el.style.setProperty("--ly-meteor-y", y.toFixed(2) + "%");
+
+            /* 尾巴长度随机，避免几条完全一致 */
+            var len = Math.round(260 + Math.random() * 160);
+            el.style.setProperty("--ly-meteor-len", len + "px");
+
+            /* 把 CYCLE 均分成 n 段，每颗占一段、段内再随机抖动。
+               均分保证平均间隔稳定（不会几颗挤在一起、又长时间没有），
+               抖动保证看起来不规律（不会像定时器）。 */
+            slots.push((i + Math.random() * 0.8) * (CYCLE / meteors.length));
+        }
+
+        // 打散后赋给各颗：每个周期只出现一次
+        for (var j = 0; j < meteors.length; j++) {
+            var node = meteors[j];
+            var startAt = slots[j];
+            node.style.setProperty("--ly-meteor-dur", CYCLE + "s");
+            node.style.setProperty("--ly-meteor-delay", (-startAt).toFixed(2) + "s");
+            /* 直接写 animation 而不是只改变量：动画已经在跑，
+               改时长/延迟需要重启动画才会应用到新的时间轴上 */
+            var anim = "linear " + CYCLE + "s " + (-startAt).toFixed(2) + "s infinite";
+            node.style.animation = "lyMeteorFall " + anim;
+            var tail = node.querySelector(".ly-meteor-tail");
+            if (tail) tail.style.animation = "lyMeteorTail " + anim;
+            var dot = node.querySelector(".ly-meteor-dot");
+            if (dot) dot.style.animation = "lyMeteorFade " + anim;
+        }
+
+        trace.push("meteors:" + meteors.length + "/cycle" + CYCLE + "s");
+    }
+
     safe("pointerGlow", setupPointerGlow);
     safe("scrollParallax", setupScrollParallax);
     safe("ripple", setupRipple);
     safe("themeToggle", setupThemeToggle);
+    safe("meteors", setupMeteors);
 
     trace.push("done");
 })();

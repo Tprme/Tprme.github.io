@@ -2,7 +2,10 @@
 # 主题基于 ParticleX / Particle（MIT），作者 thatnghiep-dev
 
 # 头像（注意：不要叫 avatar.jpg，主题自带的同名文件会覆盖 site/source 里的版本）
-avatar: /images/me.jpg
+# 用 WebP：显示尺寸只有 140x140，原来却要下 400x400 的 66 KB JPEG。
+# 同尺寸转 WebP 后 44 KB，在设备分辨率下与原图平均色差 2.13/255。
+# 没有缩小尺寸：实测降到 320px 时色差会升到 4.91（这张图细节多），不划算。
+avatar: /images/me.webp
 
 # 首页背景图（竖版原图，配合 CSS 的 contain 完整显示）
 # 同样避免与主题自带的 background.jpg / bg-main.jpg 重名
@@ -270,6 +273,10 @@ i18n:
 
 # SEO
 seo:
+  # 社交分享图。这里刻意保留 JPEG 而不是跟头像一起换成 WebP：
+  # 它只被爬虫/分享卡片抓取，不影响任何页面的加载，
+  # 而微信、QQ 这类国内平台对 WebP 的支持并不稳定。
+  # 另外它现在是 400x400 的方图，理想值应该是 1200x630 —— 等有合适的图再换。
   default_image: /images/me.jpg
   twitter_site:
   twitter_id:

@@ -34,7 +34,17 @@ function hashOf(url) {
     for (const file of candidates) {
         try {
             if (fs.statSync(file).isFile()) {
-                v = crypto.createHash('md5').update(fs.readFileSync(file)).digest('hex').slice(0, 8);
+                let buf = fs.readFileSync(file);
+                /* .css 会在 after_generate 里被 minify-css.js 压缩后再写进 public/。
+                   指纹必须算在「实际发出去的那份内容」上：
+                   否则哪天改了压缩规则而源文件没动，URL 不变，
+                   浏览器会继续吃旧缓存，问题极难查。
+                   （minify-css.js 按字母序在 asset-version.js 之后加载，
+                     但 hashOf 是渲染时才调用的，那时已经挂上来了。） */
+                if (file.endsWith('.css') && typeof hexo._lyMinifyCss === 'function') {
+                    buf = Buffer.from(hexo._lyMinifyCss(buf.toString('utf8')), 'utf8');
+                }
+                v = crypto.createHash('md5').update(buf).digest('hex').slice(0, 8);
                 break;
             }
         } catch (e) {

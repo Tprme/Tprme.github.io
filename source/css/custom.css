@@ -1610,15 +1610,18 @@ table:not(.hljs-ln) td:nth-child(odd) {
    角度：位移 (208, 120) → atan(120/208) = 30°。
    ============================================================ */
 .ly-meteor {
-    animation: ly-meteor-fall 5s linear infinite;
+    animation: ly-meteor-fall 10s linear infinite;
     height: 0;
-    /* 起点放在空旷星域：标题从约 50% 高度起、照片在右侧 60% 起 */
-    left: 18%;
+    /* 起点在首屏左上角外侧：配合 100vw 的位移，整条轨迹贯穿全屏。
+       左侧留负值让流星「从画面外划入」，而不是凭空出现在边角。 */
+    left: -4%;
     opacity: 0;
     position: absolute;
-    top: 16%;
+    top: -2%;
     transform: rotate(30deg);
     transform-origin: 0 0;
+    /* 只做 transform/opacity 动画，提前提层，避免掉帧 */
+    will-change: transform, opacity;
     width: 0;
 }
 
@@ -1629,7 +1632,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
    粗细取 2px 而不是 1.2px：低于 1.5px 时会被抗锯齿摊薄，
    在屏幕上几乎看不见（实测 1.2px 的截图上整条尾迹是空的）。 */
 .ly-meteor-tail {
-    animation: ly-meteor-tail-grow 5s linear infinite;
+    animation: ly-meteor-tail-grow 10s linear infinite;
     background: linear-gradient(
         90deg,
         rgba(196, 220, 255, 0) 0%,
@@ -1665,27 +1668,31 @@ table:not(.hljs-ln) td:nth-child(odd) {
     width: 3px;
 }
 
-/* 第二条：周期更长、起点不同，避免与第一条同步出现 */
+/* 第二条：周期更长、起点不同，避免与第一条同步出现。
+   两条周期取 10s / 14s（互质），所以划过的时间点不会规律重复；
+   配合 4.5s 的相位差，平均 4~6 秒能看到一颗，比之前 5s/7s 更稀疏。 */
 .ly-meteor:nth-child(2) {
-    animation-delay: 2.6s;
-    animation-duration: 7s;
-    left: 4%;
-    top: 22%;
+    animation-delay: 4.5s;
+    animation-duration: 14s;
+    left: 2%;
+    top: 8%;
 }
 
 .ly-meteor:nth-child(2) .ly-meteor-tail {
-    animation-delay: 2.6s;
-    animation-duration: 7s;
+    animation-delay: 4.5s;
+    animation-duration: 14s;
 }
 
 /* 容器：带着点与尾迹一起位移，所以两者不可能分家。
-   (208, 120) 正是旋转 30° 后长 240 的尾迹所覆盖的位移。
 
-   时间参照真实流星：整条只存在约 0.5s。
-   一轮 5s 的 10% = 0.5s，所以位移在 0-9% 完成、10% 就收掉容器
-   （容器 opacity 归零 = 点消失）。
-   注意 100% 必须回到 opacity: 0 且位移保持终点，
-   否则关键帧会插值回去，看起来像流星倒着飞回来。 */
+   位移用 100vw：容器已旋转 30°，沿它的 x 轴走 100vw，
+   屏幕上的落点就是 (100vw·cos30, 100vw·sin30) ≈ (87vw, 50vw)，
+   即从左上角一路划到右下区域，贯穿全屏。
+   之前只有 208px，所以看起来只出现在左半屏。
+
+   时间：整条存在约 1.2s（一轮 10s 的 12%），比之前的 0.5s 更从容。
+   100% 必须停在终点的同一位置且 opacity: 0，
+   否则会插值回去，看起来像流星倒着飞回来。 */
 @keyframes ly-meteor-fall {
     0% {
         opacity: 0;
@@ -1694,44 +1701,45 @@ table:not(.hljs-ln) td:nth-child(odd) {
     1% {
         opacity: 1;
     }
-    9% {
+    12% {
         opacity: 1;
-        transform: rotate(30deg) translate3d(208px, 120px, 0);
+        transform: rotate(30deg) translate3d(100vw, 0, 0);
     }
-    10% {
+    13% {
         opacity: 0;
-        transform: rotate(30deg) translate3d(208px, 120px, 0);
+        transform: rotate(30deg) translate3d(100vw, 0, 0);
     }
     100% {
         opacity: 0;
-        transform: rotate(30deg) translate3d(208px, 120px, 0);
+        transform: rotate(30deg) translate3d(100vw, 0, 0);
     }
 }
 
-/* 尾迹：0-9% 由 0 长到 240px（跟着点伸出来）。
-   点 10% 就消失，尾迹留到 22% 才淡完 ——
-   这个时间差就是「点没了、白线还留在星空上，然后才慢慢散去」
-   （长曝光照片里最典型的样子）。 */
+/* 尾迹：0-12% 由 0 长到 360px（跟着点伸出来）。
+   点 13% 就消失，尾迹留到 26% 才淡完 ——
+   这个时间差就是「点没了、白线还留在星空上，然后才慢慢散去」。
+   尾巴由 240px 加长到 360px：位移变成 100vw 之后，
+   240px 的尾巴在全屏尺度下显得太短。 */
 @keyframes ly-meteor-tail-grow {
     0% {
         opacity: 1;
         width: 0;
     }
-    9% {
+    12% {
         opacity: 1;
-        width: 240px;
+        width: 360px;
     }
-    10% {
+    13% {
         opacity: 0.8;
-        width: 240px;
+        width: 360px;
     }
-    22% {
+    26% {
         opacity: 0;
-        width: 240px;
+        width: 360px;
     }
     100% {
         opacity: 0;
-        width: 240px;
+        width: 360px;
     }
 }
 

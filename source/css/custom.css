@@ -29,6 +29,36 @@
     --ly-font-mono:
         ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
         "Liberation Mono", "Courier New", "Microsoft YaHei", monospace;
+
+    /* ---------- 液态玻璃（Liquid Glass）材质令牌 ----------
+       把「高光 / 描边 / 内嵌亮边 / 镜面反光」抽成变量，
+       所有玻璃表面共用同一套光感，以后调质感只改这里。
+       说明：真正的折射（背景被玻璃弯折）纯 CSS 做不到，
+       需要 SVG feDisplacementMap 或 WebGL；这里实现的是
+       模糊透光 + 边缘高光 + 动态环境光这三样主体特征。 */
+    --ly-glass-stroke: rgba(255, 255, 255, 0.7);
+    --ly-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    --ly-glass-specular: linear-gradient(
+        132deg,
+        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0) 34%
+    );
+    --ly-glass-tint: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.55),
+        rgba(255, 255, 255, 0) 46%
+    );
+    /* 同上，只存颜色停靠点：给需要多背景层（例如搜索框要先叠图标）的地方用。
+       多背景里非末层必须是图片，所以不能直接把 --ly-glass-tint 塞进去。 */
+    --ly-glass-tint-stops: rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 46%;
+    --ly-glass-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.85),
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 10px 30px rgba(16, 24, 40, 0.07);
+    --ly-glass-shadow-hover:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 2px 4px rgba(16, 24, 40, 0.05),
+        0 16px 40px rgba(16, 24, 40, 0.11);
 }
 
 /* ---------- 代码块语法高亮 ----------
@@ -113,10 +143,15 @@
     padding-top: 34px;
 }
 
-/* 语言标签：左上角小胶囊 */
+/* 语言标签：左上角小胶囊。
+   注意用 background-color 而不是简写 background：简写会把
+   background-image 一起重置为 none，玻璃渐变就没了。 */
 .code-block .language {
-    background: #e7eaef;
+    background-color: transparent;
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
     border-radius: 6px;
+    box-shadow: var(--ly-glass-inset);
     color: var(--ly-text-soft);
     font-size: 12px;
     left: 14px;
@@ -469,16 +504,9 @@ a {
      - 且 #home-card #card-style 是 #card-div 的父元素，背景白色会直接盖住。
    :is(#home-card #card-div) 让整体达到 (1,2,0)，稳定压过主题那条。 */
 :is(.timeline-content, #home-card #card-div, #comment) {
-    background-image: linear-gradient(
-        145deg,
-        rgba(255, 255, 255, 0.55),
-        rgba(255, 255, 255, 0) 46%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.85),
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 10px 30px rgba(16, 24, 40, 0.07);
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-shadow);
 }
 
 /* 资料卡的外层容器原本是纯白，会盖住内层玻璃，这里让它透明 */
@@ -488,10 +516,148 @@ a {
 }
 
 .timeline-content:hover {
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        0 2px 4px rgba(16, 24, 40, 0.05),
-        0 16px 40px rgba(16, 24, 40, 0.11);
+    box-shadow: var(--ly-glass-shadow-hover);
+}
+
+/* ============================================================
+   液态玻璃：扩展到所有适合的表面
+   ------------------------------------------------------------
+   统一用上面 :root 里的玻璃令牌，保证各处光感一致。
+   判定标准：元素自身是「一块有面积的材质」才加；
+   纯文字链接不加（会糊成一团，也拖累性能）。
+   ============================================================ */
+
+/* ---------- 首页分页按钮 ---------- */
+#home-posts .page-current .page-num,
+#home-posts .page-current .page-omit {
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+#home-posts .page-current .page-num:hover {
+    box-shadow: var(--ly-glass-shadow-hover);
+    transform: translateY(-1px);
+}
+
+/* 当前页：更实一点，作为选中态 */
+#home-posts .page-current .current {
+    background-image: linear-gradient(
+        145deg,
+        rgba(59, 130, 246, 0.16),
+        rgba(59, 130, 246, 0.05)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: var(--ly-glass-inset);
+}
+
+/* ---------- 归档页的分类 / 标签胶囊 ---------- */
+#archives .categories-tags span a,
+.categories-tags-list .categories-tags span a {
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+#archives .categories-tags span a:hover,
+.categories-tags-list .categories-tags span a:hover {
+    box-shadow: var(--ly-glass-shadow-hover);
+    transform: translateY(-1px);
+}
+
+/* ---------- 卡片上的「阅读全文」-----------
+   这个按钮的底色来自模板内联样式（每个分类一套配色），主题另有蓝紫渐变。
+   所以这里不改 background-image（会盖掉分类配色），只叠玻璃的亮边与阴影，
+   并补一个兜底底色，防止将来内联样式缺失时按钮变成透明。 */
+#home-posts .post .go-post {
+    background-color: var(--ly-accent-soft);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+#home-posts .post .go-post:hover {
+    box-shadow: var(--ly-glass-shadow-hover);
+    transform: translateY(-1px);
+}
+
+/* ---------- 代码块：语言标签与复制按钮 ----------
+   注意：当前站点的代码块都是服务端高亮的，客户端脚本会跳过它们
+   （见 js/lib/highlight.js：已有高亮就不再重高亮），而语言标签只在
+   客户端高亮的块上生成 —— 所以 .language 现在实际不存在，
+   下面这条只是给「将来出现客户端高亮块」留的样式，不影响任何渲染。 */
+.code-block .language {
+    background-color: transparent;
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+}
+
+.code-block .copycode {
+    border-radius: 6px;
+    padding: 3px 5px;
+    transition: box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.code-block .copycode:hover {
+    box-shadow: var(--ly-glass-inset);
+}
+
+/* ---------- 归档页本地搜索框 ----------
+   它自带一个内联 SVG 放大镜，所以这里必须把「渐变 + 图标」写在同一条
+   background-image 里。踩过的两个坑：
+     1) 多背景是「先写的在上」，渐变必须排在图标【前面】才看得见；
+     2) 不能在文件另一处再写一条只设图标的 #search-bar 规则 —— 同特异性下
+        后面的那条会整条覆盖这条，渐变又没了（第一版就是这样丢的）。
+   另外 --ly-glass-tint 本身是 linear-gradient(...)，不能塞进多背景的非末层
+   （非末层必须是图片），所以用只存颜色停靠点的 --ly-glass-tint-stops。 */
+#search-bar {
+    background-color: transparent;
+    background-image:
+        linear-gradient(145deg, var(--ly-glass-tint-stops)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b95a5' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E");
+    background-position: 0 0, 14px center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: auto, 16px 16px;
+    border-color: var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+    color: var(--ly-text);
+    font-family: var(--ly-font-sans);
+    font-size: 14px;
+    padding: 11px 14px 11px 40px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    border-radius: 10px;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/* ---------- 图片预览浮层 ---------- */
+#preview {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* ---------- 移动端菜单展开时的遮罩 ---------- */
+#menu-curtain {
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+/* ---------- 404 页 ---------- */
+#notfound .nf-links a {
+    background-image: var(--ly-glass-tint);
+    border: 1px solid var(--ly-glass-stroke);
+    box-shadow: var(--ly-glass-inset);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+#notfound .nf-links a:hover {
+    box-shadow: var(--ly-glass-shadow-hover);
+    transform: translateY(-1px);
 }
 
 #home-posts .post .category-and-date,
@@ -718,22 +884,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
     max-width: 380px;
 }
 
-#search-bar {
-    background-color: var(--ly-surface);
-    /* 放大镜图标用内联 SVG 背景，不依赖图标字体，也不额外增加 DOM 元素 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b95a5' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E");
-    background-position: 14px center;
-    background-repeat: no-repeat;
-    background-size: 16px 16px;
-    border: 1px solid var(--ly-border);
-    border-radius: 10px;
-    color: var(--ly-text);
-    font-family: var(--ly-font-sans);
-    font-size: 14px;
-    padding: 11px 14px 11px 40px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    width: 100%;
-}
+/* 搜索框的样式统一在上面那条 #search-bar 里（含图标与玻璃渐变），
+   这里不再重复定义，否则同特异性下会整条覆盖掉渐变。 */
 
 #search-bar::placeholder {
     color: #9aa4b2;

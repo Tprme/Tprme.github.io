@@ -76,6 +76,34 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     />
+    <%#
+      深色模式必须在 CSS 之前、且在首屏绘制之前就定好，
+      否则深色用户会先看到一闪而过的白屏（FOUC）。
+      所以这段用内联脚本放在 <head> 里同步执行，不能改成 defer / 外部文件。
+
+      关键：一定要把 data-theme 写成明确的值（dark 或 light），
+      不能只在深色时才设、浅色时留空 —— 留空意味着回退到
+      CSS 的 prefers-color-scheme 分支，用户手动选的浅色就失效了。
+      CSS 因此只需处理 [data-theme="dark"] 一种情况。
+    %>
+    <script>
+        (function () {
+            var dark;
+            try {
+                var saved = localStorage.getItem("ly-theme");
+                dark =
+                    saved === "dark" ||
+                    (saved !== "light" &&
+                        window.matchMedia("(prefers-color-scheme: dark)").matches);
+            } catch (e) {
+                /* localStorage 被禁用（隐私模式等）时退回跟随系统 */
+                dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            }
+            document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+            // color-scheme 让浏览器把原生滚动条、表单控件也切成对应配色
+            document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        })();
+    </script>
     <%# 移动端优化：
         theme-color 让手机浏览器的地址栏/状态栏跟随站点主色；
         format-detection 避免浏览器把页面里的数字误识别成电话号码并加上蓝色下划线 %>

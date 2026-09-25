@@ -9,6 +9,9 @@
             <span>&ensp;<%= key %></span>
         </a>
         <% }); %>
+        <button id="theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+            <i class="fa-solid fa-moon fa-fw" aria-hidden="true"></i>
+        </button>
     </nav>
     <nav id="mobile-menu">
         <div class="title" @click="showMenuItems = !showMenuItems">
@@ -27,6 +30,14 @@
                     </div>
                 </a>
                 <% }); %>
+                <button id="theme-toggle-mobile" type="button" aria-label="切换深色模式">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-moon fa-fw" aria-hidden="true"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">深色模式</div>
+                    </div>
+                </button>
             </div>
         </transition>
     </nav>

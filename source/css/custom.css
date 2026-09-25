@@ -13,6 +13,13 @@
     --ly-text-soft: #66727f;
     --ly-accent: #3b82f6;
     --ly-accent-soft: #e8efff;
+    /* 正文链接专用色，比 --ly-accent 深一档。
+       #3b82f6 当强调色很好看，但当作正文字色时对不上 WCAG：
+       在页面底 #f7f8fa 上只有 3.46:1、在纯白上 3.68:1，正文要求 4.5:1。
+       #2563eb 在 #f7f8fa 上是 4.86:1。
+       不直接改 --ly-accent 是因为它还兼着描边、光晕、渐变里的取色，
+       一起压深会把整体观感改掉；链接单独一个令牌影响面最小。 */
+    --ly-link: #2563eb;
     --ly-border: #e6e9ef;
     --ly-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 20px rgba(16, 24, 40, 0.06);
     --ly-shadow-hover: 0 2px 4px rgba(16, 24, 40, 0.05), 0 12px 32px rgba(16, 24, 40, 0.1);
@@ -102,6 +109,8 @@
     --ly-text-soft: #99a3b0;
     --ly-accent: #6ba4ff;
     --ly-accent-soft: #1c2a3d;
+    /* 深色下的强调色本身就有 6.5:1，链接直接沿用 */
+    --ly-link: #6ba4ff;
     --ly-border: #2a323d;
     --ly-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
     --ly-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.45);
@@ -164,7 +173,9 @@
 .code-block .comment,
 .code-block .quote,
 .code-block .doctag {
-    color: #6e7781;
+    /* 原来用 #6e7781，在 #f6f8fa 底上算出来 4.27:1，差一点点过不了 4.5。
+       GitHub 现在的 muted 色是 #57606a，实测 6.0:1。 */
+    color: #57606a;
     font-style: italic;
 }
 
@@ -197,6 +208,71 @@
 .code-block .deletion {
     color: #82071e;
     background: #ffebe9;
+}
+
+/* 深色模式的语法配色。
+   上面那套是 GitHub Light 的值，而代码块底色在深色下被换成了 #141a21 ——
+   结果就是浅色的字色压在深色底上：字符串 #0a3069 对深底只有 1.4:1，
+   数字 #0550ae 2.3:1，关键字 #cf222e 3.3:1，肉眼看就是「这几行字没了」。
+   底下按 GitHub Dark 的官方配色重配一遍（同一批 class 名，见上方注释）。
+   每个色对 #141a21 的实测对比度都标在行尾，全部 ≥ 5.6:1。 */
+:root[data-theme="dark"] .code-block .keyword,
+:root[data-theme="dark"] .code-block .type,
+:root[data-theme="dark"] .code-block .doctag {
+    color: #ff7b72; /* 6.9:1 */
+}
+
+:root[data-theme="dark"] .code-block .string,
+:root[data-theme="dark"] .code-block .regexp,
+:root[data-theme="dark"] .code-block .char {
+    color: #a5d6ff; /* 11.4:1 */
+}
+
+:root[data-theme="dark"] .code-block .number,
+:root[data-theme="dark"] .code-block .literal,
+:root[data-theme="dark"] .code-block .bullet,
+:root[data-theme="dark"] .code-block .attr,
+:root[data-theme="dark"] .code-block .attribute,
+:root[data-theme="dark"] .code-block .property,
+:root[data-theme="dark"] .code-block .variable,
+:root[data-theme="dark"] .code-block .template-variable,
+:root[data-theme="dark"] .code-block .meta,
+:root[data-theme="dark"] .code-block .section {
+    color: #79c0ff; /* 9.0:1 */
+}
+
+:root[data-theme="dark"] .code-block .comment,
+:root[data-theme="dark"] .code-block .quote {
+    color: #8b949e; /* 5.7:1 */
+}
+
+:root[data-theme="dark"] .code-block .title,
+:root[data-theme="dark"] .code-block .function {
+    color: #d2a8ff; /* 9.0:1 */
+}
+
+:root[data-theme="dark"] .code-block .built_in,
+:root[data-theme="dark"] .code-block .symbol {
+    color: #ffa657; /* 9.0:1 */
+}
+
+/* name / tag / selector-tag 放在 built_in 之后：
+   GitHub Dark 里 symbol 归橙色、name 归绿色，而浅色那套把 symbol 归在数字组、
+   name 归在标题组。分组不同，靠书写顺序定胜负，别调换。 */
+:root[data-theme="dark"] .code-block .name,
+:root[data-theme="dark"] .code-block .tag,
+:root[data-theme="dark"] .code-block .selector-tag {
+    color: #7ee787; /* 11.4:1 */
+}
+
+:root[data-theme="dark"] .code-block .addition {
+    color: #aff5b4;
+    background: #033a16;
+}
+
+:root[data-theme="dark"] .code-block .deletion {
+    color: #ffdcd7;
+    background: #67060c;
 }
 
 /* ============ 代码块外观 ============
@@ -342,7 +418,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a {
-    color: var(--ly-accent);
+    color: var(--ly-link);
 }
 
 /* ---------- 加载界面 ----------
@@ -460,28 +536,90 @@ a {
        让高光随指针在玻璃表面移动，这是「液态」感的主要来源。
    注意：真正的折射（背景内容被玻璃弯折）纯 CSS 做不到，
    需要 SVG feDisplacementMap 或 WebGL，这里没有采用。 */
-#menu {
+/* ---------- 顶部导航：常驻浮起的液态玻璃胶囊 ----------
+   按 Apple HIG（iOS 26 Liquid Glass）的做法改：
+     - 导航属于「浮在内容之上的控制层」，应该是 inset 的胶囊，
+       而不是贴满全宽的直角色块（系统标签栏同样左右内缩）；
+     - 圆角用胶囊半径 999px，与屏幕圆角构成 concentric 的层次关系；
+     - 玻璃只用于这一层控制层，内容区保持不透明。
+   描边用整圈而不是只留下边：直角色块的「下边线」放到胶囊上会很怪。 */
+/* 选择器必须带上 .menu-color：主题里有 `#menu.menu-color { background: #0003 }`，
+   特异性 (1,1,0) 高于单纯的 #menu，而且 background 是简写、
+   会把 background-image 一起重置掉（表现为模糊像是没生效）。
+   实测踩过：只写 #menu 时导航底色是 #0003 的黑色。 */
+#menu,
+#menu.menu-color {
     /* 用 color-mix 从 --ly-surface 推导航底色：浅色模式得到半透明白，
        深色模式自动得到半透明深色，不必为两套主题各写一条。 */
     background: color-mix(in srgb, var(--ly-surface) 62%, transparent);
     backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
     -webkit-backdrop-filter: saturate(180%) blur(var(--ly-glass-blur, 16px));
-    border-bottom: 1px solid var(--ly-glass-stroke);
+    border: 1px solid var(--ly-glass-stroke);
+    /* 胶囊：高度 52px，半径取一半以上即可 */
+    border-radius: 999px;
     box-shadow:
-        0 1px 0 rgba(16, 24, 40, 0.05),
-        0 6px 24px rgba(16, 24, 40, 0.07),
+        0 2px 6px rgba(16, 24, 40, 0.05),
+        0 10px 30px rgba(16, 24, 40, 0.1),
         inset 0 1px 0 var(--ly-glass-edge);
+    /* 浮起：四周留出空隙。左右各 14px、距顶 10px */
+    box-sizing: border-box;
+    left: 14px;
+    right: 14px;
+    top: 10px;
     transition: box-shadow 0.3s ease;
+    width: auto;
 }
 
-/* 滚动后：模糊加深、阴影加重，让导航「浮」得更高一点（视差感） */
+/* 滚动后：模糊加深、阴影加重，让胶囊「浮」得更高一点（视差感） */
 #menu.ly-glass-scrolled {
     --ly-glass-blur: 22px;
     box-shadow:
-        0 1px 0 rgba(16, 24, 40, 0.06),
-        0 10px 34px rgba(16, 24, 40, 0.12),
+        0 2px 6px rgba(16, 24, 40, 0.07),
+        0 14px 40px rgba(16, 24, 40, 0.16),
         inset 0 1px 0 var(--ly-glass-edge);
 }
+
+/* 滚动时不再收起。
+   主题原本是 `#menu.hidden { top: -50px }`（向下滚动就把导航藏到屏幕外），
+   现在导航是浮在上方的胶囊，用户要的是「常驻在最上方」。
+   顺带修掉一个不一致：主题那条 `.hidden` 特异性 (1,1,0)，
+   和上面 `#menu.menu-color` 打平、而 custom.css 在后面，
+   于是「首页会收起、文章页不会」——同一份 CSS 两种行为。
+   这里显式写死 top，两种情况都留在原地。 */
+#menu.hidden,
+#menu.menu-color.hidden {
+    top: 10px;
+}
+
+/* 手机上展开汉堡菜单时，胶囊会长成一个很高的圆角盒，
+   999px 半径在这种形状上会被浏览器按比例缩到「半高」，
+   变成一个 150px 大圆角的球场面，菜单项贴着弧线很难看。
+   展开状态下换成常规卡片圆角。用 :has() 判断下拉是否可见：
+   Vue 的 v-show 会写成内联 display:none，这里就是靠它区分开合。 */
+#menu:has(#mobile-menu .items:not([style*="display: none"])) {
+    border-radius: 26px;
+}
+/* 这里原先有一条 @media (prefers-reduced-transparency: reduce) 的降级：
+   系统要求「减少透明度」时把导航换成不透明底、去掉 backdrop-filter。
+   后来发现它只在部分页面生效，而且原因很隐蔽：
+     - 首页 #menu 会带上 menu-color（main.js 里 handleScroll 设的），
+       而本文件上面的规则写的是 `#menu, #menu.menu-color`，
+       其中 `#menu.menu-color` 特异性 (1,1,0)，压过了媒体查询里的 `#menu` (1,0,0)；
+     - 文章页 / 归档页没有 homePostsWrap，menuColor 一直是 false，
+       于是没有 .menu-color，媒体查询里的 `#menu` 才赢得过。
+   实测（CDP 强制两种媒体取值）：
+     首页   reduce → 仍然 0.62 白 + blur(16px)
+     归档页 reduce → rgb(255,255,255) + backdrop-filter: none
+   也就是同一个浏览器里「首页是玻璃、内页是实心」，属于 bug 而不是设计。
+
+   现在的选择：整站统一都用玻璃，删掉这条降级。
+   理由是本站其它所有玻璃表面（文章卡、资料卡、评论区、涟漪、流星）
+   本来就没有针对这个偏好做处理，只给导航一条会造成站内自相矛盾。
+   另外要说明：这台机器的 Windows「透明效果」是关的（注册表
+   HKCU\\...\\Themes\\Personalize\\EnableTransparency = 0），
+   Chromium 会据此报告 prefers-reduced-transparency: reduce ——
+   也就是说保留降级的话，站长自己永远看不到这个毛玻璃导航。
+   如果以后要严格照顾这个偏好，正确做法是整站一起做，而不是只改导航。 */
 
 #menu::after {
     background:
@@ -495,6 +633,9 @@ a {
             var(--ly-glass-hi-soft),
             transparent 58%
         );
+    /* 高光层是 inset:0 的矩形。导航现在是胶囊，
+       不继承圆角的话这层会从胶囊的四个圆角外露出一小块方形光斑。 */
+    border-radius: inherit;
     content: "";
     inset: 0;
     opacity: 0;
@@ -510,21 +651,37 @@ a {
     opacity: 1;
 }
 
-/* 注意：主题用的是 #menu #desktop-menu a 这种高优先级选择器，
-   必须写到同等或更高优先级才能覆盖掉默认的深棕 #382615 */
+/* 导航文字色。
+   注意：主题用的是 #menu #desktop-menu a 这种高优先级选择器，
+   必须写到同等或更高优先级才能覆盖掉默认的深棕 #382615。
+
+   更要紧的是下面这组 .menu-color 镜像选择器：
+   主题有一条 `#menu.menu-color #desktop-menu a { color: #fff }`，
+   特异性 (2,1,1)，比我下面那组 (1,1,1) 高 ——
+   一旦 #menu 带上 menu-color 类（首屏时就有），导航文字会变成纯白。
+   浅色主题下导航是白色玻璃胶囊，白字落在白底上完全看不见
+   （实测截图里菜单文字整片消失）。按同样的选择器结构镜像一遍，
+   把颜色交回 --ly-text，两种主题各自取到该有的前景色。 */
 #menu #desktop-menu .title,
 #menu #desktop-menu a,
 #menu #mobile-menu .title,
 #menu #mobile-menu .items a,
 #menu a,
-#menu a:visited {
+#menu a:visited,
+#menu.menu-color #desktop-menu .title,
+#menu.menu-color #desktop-menu a,
+#menu.menu-color #mobile-menu .title,
+#menu.menu-color #mobile-menu a,
+#menu.menu-color #mobile-menu .items a {
     color: var(--ly-text);
 }
 
 #menu #desktop-menu a:hover,
 #menu #mobile-menu .items a:hover,
-#menu a:hover {
-    color: var(--ly-accent);
+#menu a:hover,
+#menu.menu-color #desktop-menu a:hover,
+#menu.menu-color #mobile-menu a:hover {
+    color: var(--ly-link);
 }
 
 /* ---------- 文章卡片：液态玻璃质感 ----------
@@ -623,7 +780,7 @@ a {
     );
     border: 1px solid var(--ly-glass-stroke);
     box-shadow: var(--ly-glass-inset);
-    color: var(--ly-accent);
+    color: var(--ly-link);
     font-weight: 700;
 }
 
@@ -637,7 +794,7 @@ a {
 
 #home-posts .page-current .page-num:hover {
     box-shadow: var(--ly-glass-shadow-hover);
-    color: var(--ly-accent);
+    color: var(--ly-link);
     transform: translateY(-1px);
 }
 
@@ -945,7 +1102,10 @@ table:not(.hljs-ln) td:nth-child(odd) {
     background: var(--ly-accent-soft);
     border: 1px solid #d6e3fb;
     border-radius: 10px;
-    color: var(--ly-accent);
+    /* #2563eb 压在 #e8efff 上是 4.48:1，差 0.02 过不了 4.5，
+       这两个按钮又不能用更浅的底（会和页面底糊在一起），所以单独再深一档。
+       查过就不留侥幸：4.48 和 4.5 在工具里就是红和绿的区别。 */
+    color: #1d4ed8;
     font-size: 14px;
     padding: 10px 20px;
     transition: background 0.2s, border-color 0.2s, transform 0.2s;
@@ -955,6 +1115,12 @@ table:not(.hljs-ln) td:nth-child(odd) {
     background: #dce8ff;
     border-color: #c2d6fa;
     transform: translateY(-1px);
+}
+
+/* 上面那个深蓝是给浅色底调的，深色模式下它压在 #1c2a3d 上只有 2.16:1，
+   所以深色改回强调色（5.8:1）。 */
+:root[data-theme="dark"] #notfound .nf-links a {
+    color: var(--ly-link);
 }
 
 @media (max-width: 767px) {
@@ -1406,9 +1572,28 @@ table:not(.hljs-ln) td:nth-child(odd) {
     color: var(--ly-accent) !important;
 }
 
-/* 分类 / 标签胶囊同样有按分类注入的内联配色 */
-:root[data-theme="dark"] :is(#home-posts .post .post-tags .tag a, .article .info .tags .tag a, .timeline-content .info .tags .tag a, .timeline-content .info .category a, .article .info .category a) {
+/* 分类 / 标签胶囊同样有按分类注入的内联配色。
+   #home-posts .post .category-and-date .category a 是补上的一处：
+   首页文章卡片上「分类名」那条链接走的是 div.category-and-date > span.category > a，
+   和文章页的 .article .info .category a 不是同一个结构，原先漏了，
+   于是首页只剩分类配色里的浅色内联 color，深色模式下「随笔」只有 1.23:1，
+   基本等于隐形。 */
+:root[data-theme="dark"] :is(#home-posts .post .category-and-date .category a, #home-posts .post .post-tags .tag a, .article .info .tags .tag a, .timeline-content .info .tags .tag a, .timeline-content .info .category a, .article .info .category a) {
     color: var(--ly-text-soft) !important;
+}
+
+/* 归档 / 分类 / 标签页的时间戳，以及资料卡上的图标链接与友链，
+   主题给的是写死的 #5c6b72（对深色卡片 2.96:1）。 */
+:root[data-theme="dark"] #archives .item-time,
+:root[data-theme="dark"] :is(#home-card #card-div .icon-links a, #home-card #card-div .friend-links a) {
+    color: var(--ly-text-soft);
+}
+
+/* 文章正文里的链接由主题的 `.article[data-category] a { color: var(--tx-cat-text) }`
+   （特异性 0,2,1）决定，用的是按分类配的浅色，深色下只有 2.18:1。
+   这里用 (0,3,1) 盖掉它。 */
+:root[data-theme="dark"] .article[data-category] a {
+    color: var(--ly-link);
 }
 
 /* ---------- 点击涟漪（玻璃被按下去的反馈） ----------

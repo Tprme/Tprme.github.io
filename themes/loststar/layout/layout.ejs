@@ -64,9 +64,11 @@
         description: seoDescription,
         keywords: seoKeywords,
         image: seoImage,
-        /* 头像是正方形，用 summary 而不是 summary_large_image，
-           否则在部分平台（微信/QQ 分享卡片）会被拉伸变形 */
-        twitter_card: 'summary',
+        /* 卡片类型按分享图的真实宽高决定，见 scripts/og-card-type.js：
+           默认分享图 1200x630 走大图卡片（summary_large_image），
+           而文章 cover 若是竖图（如中秋那篇 1107x1476）仍用方图卡片 ——
+           否则平台会把竖图从中间裁成 1.91:1，上下大半都没了。 */
+        twitter_card: ogCardType(seoImage),
         twitter_site: (theme.seo && theme.seo.twitter_site) || '',
         twitter_image: seoImage,
         fb_admins: (theme.seo && theme.seo.fb_admins) || '',

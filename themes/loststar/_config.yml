@@ -285,11 +285,18 @@ i18n:
 
 # SEO
 seo:
-  # 社交分享图。这里刻意保留 JPEG 而不是跟头像一起换成 WebP：
-  # 它只被爬虫/分享卡片抓取，不影响任何页面的加载，
+  # 社交分享图：把链接发给别人时，卡片上的那张图（og:image / twitter:image）。
+  # 1200x630，内容为「首屏照片 + 深色遮罩 + 居中站名」。
+  # 用 JPEG 而不是 WebP：它只被爬虫/分享卡片抓取，不影响任何页面加载，
   # 而微信、QQ 这类国内平台对 WebP 的支持并不稳定。
-  # 另外它现在是 400x400 的方图，理想值应该是 1200x630 —— 等有合适的图再换。
-  default_image: /images/me.jpg
+  # 生成方式见 _tools/share-cards/ 与 _tools/gen-share-cards.js（画布实时绘制）。
+  #
+  # 文字刻意居中：微信/QQ 会把宽图从中间裁成正方形，
+  # 左对齐的文字会被切掉一半。居中后无论大图卡片还是方形裁切都完整。
+  #
+  # 卡片类型不写死：scripts/og-card-type.js 会读图片真实宽高，
+  # 宽图用 summary_large_image、竖图（如文章 cover）退回 summary。
+  default_image: /images/share-default.jpg
   twitter_site:
   twitter_id:
   fb_app_id:

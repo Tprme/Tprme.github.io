@@ -202,8 +202,6 @@
     %>
     <script src="<%- asset_url("/js/lib/glass.js") %>"></script>
     <script src="<%- asset_url("/js/main.js") %>"></script>
-    <% if (type === "post" && page.comments) { %>
-    <%- partial("comment") %>
-    <% } %>
+    <%# 评论区（partial("comment")）已按反馈整体移除，原因与恢复步骤见 post.ejs %>
 </body>
 </html>

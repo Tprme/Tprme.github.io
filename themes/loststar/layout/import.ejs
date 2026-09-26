@@ -52,20 +52,12 @@
 <% if (type === "archives" && theme.search.enable) { %>
 <script src="<%- asset_url("/js/lib/search.js") %>"></script>
 <% } %>
-<% if (type === "post" && page.comments) { %>
-<% if (theme.gitalk.enable) { %>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.css" />
-<% } %>
-<% if (theme.waline.enable) { %>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/waline/3.3.2/waline.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/waline/3.3.2/waline.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/waline/3.3.2/waline-meta.min.css" />
-<% } %>
-<% if (theme.twikoo.enable) { %>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twikoo/1.6.31/twikoo.all.min.js"></script>
-<% } %>
-<% } %>
+<%#
+  这里原本在文章页加载评论系统的资源（gitalk / waline / twikoo 的 JS 与 CSS，
+  全部来自 cdnjs）。评论已整体移除，所以整块删掉 ——
+  顺带的好处是文章页不再向第三方发起任何请求。
+  giscus 不在这里加载（它是文章页末尾的 partial("comment")），那个也一并去掉了。
+%>
 <% if (type === "index") { %>
 <script src="<%- asset_url("/js/lib/home.js") %>"></script>
 <% } %>

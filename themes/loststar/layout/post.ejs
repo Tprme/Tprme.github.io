@@ -96,26 +96,13 @@
         <%- page.content %>
     </div>
     <% } %>
-    <% if (page.comments) { %>
-    <% if (theme.gitalk.enable) { %>
-    <div id="comment">
-        <div id="gitalk-container"></div>
-    </div>
-    <% } %>
-    <% if (theme.giscus.enable) { %>
-    <div id="comment">
-        <div id="giscus-container" class="giscus"></div>
-    </div>
-    <% } %>
-    <% if (theme.waline.enable) { %>
-    <div id="comment">
-        <div id="waline-container"></div>
-    </div>
-    <% } %>
-    <% if (theme.twikoo.enable) { %>
-    <div id="comment">
-        <div id="twikoo-container"></div>
-    </div>
-    <% } %>
-    <% } %>
+    <%# 评论区已按反馈整体移除（原来这里是四种评论系统的 #comment 容器）。
+        整块删掉而不是留着 if 分支：四个 enable 现在都是 false，
+        留着只会是一段永远不会渲染的死模板。
+        想恢复评论的话需要同时恢复四处，缺一不可：
+          1) 这里的 #comment 容器
+          2) layout.ejs 里的 partial("comment")（加载评论系统脚本）
+          3) import.ejs 里 gitalk / waline / twikoo 的资源加载块
+          4) glass.js 里同步 giscus 主题的那段 ——
+             少了它，深色模式下评论区会是一块刺眼的白。 %>
 </div>

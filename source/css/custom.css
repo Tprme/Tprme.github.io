@@ -1066,7 +1066,7 @@ html.ly-glass-lit #menu::after {
        会被它的简写 background 顶掉 background-image；
      - 且 #home-card #card-style 是 #card-div 的父元素，背景白色会直接盖住。
    :is(#home-card #card-div) 让整体达到 (1,2,0)，稳定压过主题那条。 */
-:is(.timeline-content, #home-card #card-div, #comment) {
+:is(.timeline-content, #home-card #card-div) {
     background-image: var(--ly-glass-tint);
     border: 1px solid var(--ly-glass-stroke);
     box-shadow: var(--ly-glass-shadow);
@@ -1343,7 +1343,7 @@ html.ly-glass-lit #menu::after {
 /* ---------- 个人资料卡 ----------
    注意：这里绝对不能再写 background / border / box-shadow —— 
    `#home-card #card-div` 的特异性是 (1,1,0)，比上面那条
-   :is(.timeline-content, #home-card #card-div, #comment)（1,0,0）更高，
+   :is(.timeline-content, #home-card #card-div)（1,0,0）更高，
    一旦在这里写简写 background，就会把玻璃层的 background-image 重置成 none，
    症状是资料卡完全没有玻璃效果（排查时踩过这个坑）。玻璃样式统一在上面的 :is() 里。 */
 #home-card #card-div .avatar {
@@ -1399,47 +1399,15 @@ table:not(.hljs-ln) td:nth-child(odd) {
     background: #ffffff;
 }
 
-/* ---------- 文章评论区（giscus） ----------
-   主题原本没给评论区写样式。玻璃质感（背景渐变/边框/阴影）
-   统一由上面的 :is(.timeline-content, #home-card #card-div, #comment) 提供，
-   这里只负责尺寸和圆角，避免两条规则争同一个属性。 */
-#comment {
-    border-radius: 15px;
-    box-sizing: border-box;
-    margin: 25px auto 0;
-    padding: 28px 30px;
-    width: 900px;
-}
-
-/* giscus 的 iframe 必须解除主题的限制。
-   主题 main.css 里有一条：
-       .content img, .content video, .content audio, .content iframe { max-width: 75% }
-   那是为文章里的图片/视频留边距用的，但评论区也是 iframe，会被一起压到 75% 宽，
-   再靠 margin:auto 居中，看起来就比文章卡片窄一截。
-   注意：只写 width:100% 不够 —— width 和 max-width 同时存在时取较小值，
-   必须把 max-width 也一并覆盖。 */
-#comment .giscus,
-#comment .giscus-frame {
-    border: none;
-    display: block;
-    margin: 0;
-    max-width: 100%;
-    width: 100%;
-}
-
-@media (max-width: 1023px) {
-    #comment {
-        width: 800px;
-    }
-}
-
-@media (max-width: 767px) {
-    #comment {
-        border-radius: 12px;
-        padding: 18px 16px;
-        width: 100%;
-    }
-}
+/* ---------- 文章评论区：已整体移除 ----------
+   这里原本是 #comment 的样式（尺寸/圆角）以及解除 giscus iframe 的
+   max-width:75% 限制的那两条规则。评论功能按反馈去掉后，
+   #comment 已经不存在，这些规则也一并删除。
+   注意：上面那条玻璃质感规则原本是
+   :is(.timeline-content, #home-card #card-div)，
+   现在选择器里的 #comment 也已去掉。
+   如果将来恢复评论，需要把这里的尺寸规则和 iframe 的 max-width 覆盖一起加回来
+   —— 少了后者，giscus 会被主题的 .content iframe{max-width:75%} 压窄一截。 */
 
 /* ---------- 404 页面 ---------- */
 #notfound {
@@ -1940,7 +1908,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
 /* 归档/分类/标签页的 .timeline-content 与资料卡用的是主题写死的
    `background: #fff`（不是变量），深色下必须显式覆盖一次。
    只改 background-color，避免动到其它 background 子属性。 */
-:root[data-theme="dark"] :is(.timeline-content, #home-card #card-div, #comment) {
+:root[data-theme="dark"] :is(.timeline-content, #home-card #card-div) {
     background-color: var(--ly-surface);
 }
 
@@ -2008,9 +1976,8 @@ table:not(.hljs-ln) td:nth-child(odd) {
    js/lib/glass.js 在 pointerdown 时插入 .ly-ripple-mask（带圆角遮罩的
    全尺寸覆盖层），里面放一个 .ly-ripple（从指针位置扩散的圆），
    动画结束后整体移除。
-   为什么多一层遮罩：卡片本来有 overflow:hidden，但 .timeline-content 和
-   #comment 是 visible，直接放圆会溢出卡片；而给评论区硬加 overflow:hidden
-   可能裁掉 iframe 内容。遮罩层能只限制涟漪、不动原布局。
+   为什么多一层遮罩：卡片本来有 overflow:hidden，但 .timeline-content 是 visible，
+   直接放圆会溢出卡片。（原先列表里还有 #comment，评论移除后已去掉。）
    mask-composite 不被支持时整条失效 → 涟漪显示为方形扩散，可接受。 */
 .ly-ripple-mask {
     -webkit-mask-composite: xor;

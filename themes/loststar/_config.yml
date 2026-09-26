@@ -186,11 +186,23 @@ crypto:
 search:
   enable: true
 
-# ---------- 评论系统（只启用一种） ----------
+# ---------- 评论系统 ----------
+# ★ 评论已按反馈整体移除。
+# 四个系统的 enable 现在全是 false，于是文章页不再渲染 #comment 容器、
+# 也不再请求任何第三方脚本（giscus 的 client.js / giscus.app 的样式，
+# 以及 cdnjs 上 gitalk / waline / twikoo 的资源）。
+# 跟着一起删掉的还有：post.ejs 的容器、layout.ejs 的 partial("comment")、
+# import.ejs 的资源加载块、glass.js 里同步 giscus 主题的那段、
+# custom.css 里的 #comment 样式，以及 layout/comment.ejs 整个文件。
+#
+# 下面保留 giscus 的配置（含 repoID / categoryID）只是为了将来想开回来时
+# 不必再去 giscus.app 重新生成一遍 ID —— 但要注意：
+# 光把 enable 改回 true 不够，必须同时恢复上面列出的那几处。
+#
 # giscus：基于 GitHub Discussions，免费、无需自建服务端。
 # 读者用 GitHub 账号登录后即可评论，评论以 Discussion 形式存进仓库。
 giscus:
-  enable: true
+  enable: false
   src: https://giscus.app/client.js
   repo: Tprme/Tprme.github.io
   repoID: R_kgDOUbfxuQ

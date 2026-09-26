@@ -252,8 +252,7 @@
             "#home-posts .post",
             ".article[data-category]",
             ".timeline-content",
-            "#home-card #card-div",
-            "#comment"
+            "#home-card #card-div"
         ].join(",");
 
         function spawn(el, clientX, clientY) {
@@ -262,8 +261,8 @@
 
             /* 用一层「带圆角遮罩的全尺寸覆盖层」把涟漪限制在玻璃范围内。
                为什么不直接给元素加 overflow:hidden：卡片本来就有，
-               但 .timeline-content / #comment 是 visible，而硬加 hidden
-               可能裁掉评论区的 iframe 内容，风险太大。
+               但 .timeline-content 是 visible，硬加 hidden 有裁掉内容的
+               风险（原先列表里还有 #comment，评论移除后已去掉）。
                遮罩用 mask-composite 取反做「圆角挖空」，
                不支持的浏览器整条失效 → 涟漪显示为方形扩散，可接受。 */
             var layer = document.createElement("span");
@@ -374,50 +373,12 @@
             if (mobileLabel) mobileLabel.textContent = isDark() ? "浅色模式" : "深色模式";
         }
 
-        /* 评论是 giscus 的 iframe，有自己的主题；
-           改本站主题时必须同步通知它，否则会出现「深色站点里嵌一块白色评论区」。
-           giscus 只认 postMessage 里的 theme 字段，改 src 无效。
-
-           这里有个时序坑（实测确认过）：
-           MutationObserver 是在 iframe 元素刚插进 DOM 的那一刻回调的，
-           那时 giscus 内部文档还没跑起来、message 监听还没挂上，
-           这一发 postMessage 会被直接丢掉。症状很迷惑 ——
-           调试轨迹里明明写着 giscus:dark（函数确实执行了、消息确实发了），
-           但评论区依然是白的；隔几秒手动补发一次就立刻变深。
-           所以真正管用的是 iframe 的 load 事件（那时内部脚本一定已就绪），
-           外加几个定时重试兜住「load 早于挂监听」和缓存命中的情况。 */
-        function pushGiscusTheme(frame) {
-            if (!frame || !frame.contentWindow) return false;
-            frame.contentWindow.postMessage(
-                { giscus: { setConfig: { theme: isDark() ? "dark" : "light" } } },
-                "https://giscus.app"
-            );
-            return true;
-        }
-
-        var giscusHooked = []; // 已挂过补发逻辑的 iframe，防止重复挂
-
-        function syncGiscus() {
-            var frame = document.querySelector("iframe.giscus-frame");
-            if (!frame || !frame.contentWindow) {
-                trace.push("giscus:absent");
-                return;
-            }
-            pushGiscusTheme(frame);
-            if (giscusHooked.indexOf(frame) === -1) {
-                giscusHooked.push(frame);
-                frame.addEventListener("load", function () {
-                    pushGiscusTheme(frame);
-                    trace.push("giscus:onload");
-                });
-                [400, 1200, 2500].forEach(function (ms) {
-                    window.setTimeout(function () {
-                        pushGiscusTheme(frame);
-                    }, ms);
-                });
-            }
-            trace.push("giscus:" + (isDark() ? "dark" : "light"));
-        }
+        /* 这里原本有一段同步 giscus 评论区主题的逻辑
+           （pushGiscusTheme / giscusHooked / syncGiscus）。
+           评论已按反馈整体移除，所以整段删掉 ——
+           它当年解决的是「深色站点里嵌一块白色评论区」，
+           现在没有评论区了，留着只是死代码。
+           如果将来恢复评论，这段必须一起恢复，否则又会出现白块。 */
 
         function toggle() {
             var dark = !isDark();
@@ -444,7 +405,6 @@
                 /* 隐私模式下写不了，忽略即可 */
             }
             syncIcons();
-            syncGiscus();
             trace.push("theme:" + (dark ? "dark" : "light"));
         }
 
@@ -458,30 +418,6 @@
 
         syncIcons();
         trace.push("themeToggle");
-
-        /* giscus 是懒加载 + 异步的，首次进文章页时 iframe 可能还没出现，
-           所以：先用 MutationObserver 等它出现，再立刻同步一次。
-           另外这里先无条件调一次 syncGiscus()，覆盖「iframe 在本次脚本执行前
-           就已经存在」的情况（前进/后退缓存、评论已加载完再切页等），
-           那种情况下不会有新的 DOM 变更，光靠观察者是等不到的。 */
-        syncGiscus();
-
-        try {
-            var obs = new MutationObserver(function () {
-                var f = document.querySelector("iframe.giscus-frame");
-                /* 只在「出现了一个还没处理过的 iframe」时同步，
-                   否则每次 DOM 变更都会重复发消息、把调试轨迹刷爆。 */
-                if (f && giscusHooked.indexOf(f) === -1) {
-                    syncGiscus();
-                }
-            });
-            obs.observe(document.body, { childList: true, subtree: true });
-            window.setTimeout(function () {
-                obs.disconnect();
-            }, 30000);
-        } catch (e) {
-            trace.push("giscus:observer-failed");
-        }
     }
 
     /* ============================================================

@@ -1141,6 +1141,43 @@ html.ly-glass-lit #menu::after {
     transform: translateY(-1px);
 }
 
+/* ---------- 分类 / 标签胶囊的深浅两套配色 ----------
+   配色本身来自 taxonomy_styles（每个分类/标签一套），由模板写进 CSS 变量：
+     --tx-bg / --tx-fg        浅色模式
+     --tx-dbg / --tx-dfg      深色模式（由 helper 按色相自动推导，见
+                              themes/loststar/scripts/taxonomy-style-helper.js）
+   为什么必须走变量而不是像以前那样直接内联 background/color：
+   内联样式不会跟着 [data-theme] 变，所以深色模式下胶囊一直是浅底深字，
+   在深色页面里就是一块块亮斑（实测 /tags/ 六个、/categories/ 两个）。
+
+   选择器必须写到 (1,2,2) 这个特异性：
+   主题 main.css 里有 `#archives .categories-tags span a`（1,1,2），
+   它把 color 定成了 #fff —— 特异性不够的话深色下字会看不见。
+   注意 background 简写会同时重置 background-image，
+   所以上面那条 --ly-glass-tint 在胶囊上实际是被这条覆盖掉的（换成纯色）。 */
+#archives .categories-tags span a.tx-chip,
+.categories-tags-list .categories-tags span a.tx-chip {
+    background: var(--tx-bg);
+    color: var(--tx-fg);
+}
+
+:root[data-theme="dark"] #archives .categories-tags span a.tx-chip,
+:root[data-theme="dark"] .categories-tags-list .categories-tags span a.tx-chip {
+    background: var(--tx-dbg);
+    color: var(--tx-dfg);
+}
+
+/* ---------- 时间轴节点（深色） ----------
+   主题 main.css 里是 `.timeline-tail { background: #fff; border: 2px solid #a5c2f5 }`
+   —— 浅色模式下的「白心 + 淡蓝圈」。深色下那点白会变成一枚刺眼的小亮斑，
+   淡蓝边框同样是浅色模式的值，所以这里一起换成跟随主题的蓝点。
+   这是顺着「深色下不该出现浅色模式配色」一并处理的，不在原始反馈里；
+   若不想要，删掉这段即可回到原来的白点。 */
+:root[data-theme="dark"] .timeline-tail {
+    background: var(--ly-accent);
+    border-color: color-mix(in srgb, var(--ly-accent) 35%, transparent);
+}
+
 /* ---------- 卡片上的「阅读全文」-----------
    这个按钮的底色来自模板内联样式（每个分类一套配色），主题另有蓝紫渐变。
    所以这里不改 background-image（会盖掉分类配色），只叠玻璃的亮边与阴影，

@@ -12,13 +12,20 @@
         <%
             const tagStyle = getTxTagStyle(tag.name);
             const isActive = is_tag(tag.name);
-            const chipBg = isActive
-                ? `linear-gradient(120deg, ${tagStyle ? tagStyle.bg : '#9abbf7'} 0%, ${tagStyle ? tagStyle.bg : '#ffbbf4'} 60%)`
-                : (tagStyle ? tagStyle.bg : '#eef2f7');
+            /* 深浅两套配色都写进 CSS 变量，由 custom.css 按主题选一套。
+               为什么不能再像以前那样直接内联 background/color：
+               内联样式不会跟着 [data-theme] 变，所以深色模式下胶囊
+               会一直保持浅色模式的浅底深字，在深色页面里就是一块块亮斑。
+               深色那套由 helper 按色相自动推导（见 taxonomy-style-helper.js）。 */
+            const chipBase = tagStyle ? tagStyle.bg : '#eef2f7';
+            const chipDark = tagStyle ? tagStyle.dBg : '#26313d';
+            const chipBg = isActive ? `linear-gradient(120deg, ${chipBase} 0%, ${chipBase} 60%)` : chipBase;
+            const chipBgDark = isActive ? `linear-gradient(120deg, ${chipDark} 0%, ${chipDark} 60%)` : chipDark;
             const chipText = tagStyle ? tagStyle.text : '#4f6370';
+            const chipTextDark = tagStyle ? tagStyle.dText : '#b6c2d0';
         %>
         <span>
-            <a href="<%- url_for(tag.path) %>" style="background: <%- chipBg %>; color: <%- chipText %>"<% if (isActive) { %> class="active-chip"<% } %>>
+            <a href="<%- url_for(tag.path) %>" class="tx-chip<% if (isActive) { %> active-chip<% } %>" style="--tx-bg: <%- chipBg %>; --tx-fg: <%- chipText %>; --tx-dbg: <%- chipBgDark %>; --tx-dfg: <%- chipTextDark %>">
                 <span class="icon">
                     <i class="fa-solid fa-tags fa-fw"></i>
                 </span>

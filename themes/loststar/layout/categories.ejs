@@ -12,13 +12,22 @@
         <%
             const catStyle = getTxCategoryStyle(category.name);
             const isActive = is_category(category.name);
+            /* 深浅两套配色都写进 CSS 变量，由 custom.css 按主题选一套。
+               内联 background/color 不会跟着 [data-theme] 变，
+               所以深色模式下会一直是浅色底 —— 详见 tags.ejs 里的同类注释。 */
+            const chipBase = catStyle ? catStyle.bg : '#eef2f7';
+            const chipDark = catStyle ? catStyle.dBg : '#26313d';
             const chipBg = isActive
-                ? `linear-gradient(120deg, ${catStyle ? catStyle.bg : '#9abbf7'} 0%, ${catStyle ? catStyle.bg : '#ffbbf4'} 60%)`
-                : (catStyle ? catStyle.bg : '#eef2f7');
+                ? `linear-gradient(120deg, ${chipBase} 0%, ${chipBase} 60%)`
+                : chipBase;
+            const chipBgDark = isActive
+                ? `linear-gradient(120deg, ${chipDark} 0%, ${chipDark} 60%)`
+                : chipDark;
             const chipText = catStyle ? catStyle.text : '#4f6370';
+            const chipTextDark = catStyle ? catStyle.dText : '#b6c2d0';
         %>
         <span>
-            <a href="<%- url_for(category.path) %>" style="background: <%- chipBg %>; color: <%- chipText %>"<% if (isActive) { %> class="active-chip"<% } %>>
+            <a href="<%- url_for(category.path) %>" class="tx-chip<% if (isActive) { %> active-chip<% } %>" style="--tx-bg: <%- chipBg %>; --tx-fg: <%- chipText %>; --tx-dbg: <%- chipBgDark %>; --tx-dfg: <%- chipTextDark %>">
                 <span class="icon">
                     <i class="fa-solid fa-bookmark fa-fw"></i>
                 </span>

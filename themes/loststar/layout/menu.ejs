@@ -1,7 +1,7 @@
 <div id="menu">
     <nav id="desktop-menu">
         <a class="title" href="<%- config.root %>">
-            <span><%= config.title.toUpperCase() %></span>
+            <span><%= config.title %></span>
         </a>
         <% Object.entries(theme.menu).forEach(([key, value]) => { %>
         <a href="<%- url_for(value.link) %>">
@@ -32,7 +32,7 @@
             @keydown.space.prevent="showMenuItems = !showMenuItems"
         >
             <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
-            <span>&emsp;<%= config.title.toUpperCase() %></span>
+            <span>&emsp;<%= config.title %></span>
         </div>
         <transition name="slide">
             <div class="items" id="mobile-menu-items" v-show="showMenuItems">

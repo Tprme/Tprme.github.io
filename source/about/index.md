@@ -27,7 +27,7 @@ Tprme，大一刚入学，C 语言基础刚学完，正在往后面学。
 用 [Hexo](https://hexo.io) 搭建，主题是 [LostStar](https://github.com/thatnghiep-dev/hexo-theme-loststar)，
 托管在 GitHub Pages 上，push 后由 GitHub Actions 自动部署。
 
-文章如果对你有帮助，欢迎在评论区留言。
+如果你发现文章里有错误，或想交流学习内容，欢迎通过 [GitHub 联系我](https://github.com/Tprme)。
 
 ## 常用
 

@@ -103,23 +103,23 @@ taxonomy_styles:
 
 # 顶部导航菜单
 menu:
-  Home:
+  首页:
     name: house
     theme: solid
     link: /
-  About:
+  关于:
     name: id-card
     theme: solid
     link: /about
-  Archives:
+  归档:
     name: box-archive
     theme: solid
     link: /archives
-  Categories:
+  分类:
     name: bookmark
     theme: solid
     link: /categories
-  Tags:
+  标签:
     name: tags
     theme: solid
     link: /tags

@@ -43,7 +43,7 @@ filename_case: 0
 render_drafts: false
 post_asset_folder: true
 relative_link: false
-future: true
+future: false # 未到发布日期的文章不会提前出现在已发布的网站上
 syntax_highlighter: highlight.js
 
 # LostStar 主题用 highlight.js 客户端高亮，关掉 Hexo 自带的，避免两套样式打架

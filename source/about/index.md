@@ -21,6 +21,8 @@ Tprme，大一刚入学，C 语言基础刚学完，正在往后面学。
 
 - GitHub：<https://github.com/Tprme>
 - 博客：<https://Tprme.github.io>
+- 微信：staying-power
+- QQ：252981826
 
 ## 关于本站
 

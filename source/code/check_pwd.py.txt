@@ -1,0 +1,10 @@
+"""A small password rule checker used in the Python learning note."""
+
+while True:
+    password = input("请输入你的密码（输入 exit 退出）：")
+    if password == "exit":
+        print("退出程序")
+        break
+    has_digit = any(char.isdigit() for char in password)
+    has_alpha = any(char.isalpha() for char in password)
+    print("密码强度：强" if len(password) >= 8 and has_digit and has_alpha else "密码强度：弱，建议更改！")

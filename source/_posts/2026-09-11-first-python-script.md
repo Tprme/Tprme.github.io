@@ -266,3 +266,5 @@ for char in password:
 ---
 
 *相关代码：[python-learning/check_pwd.py](https://github.com/Tprme/python-learning/blob/main/check_pwd.py)*
+
+本篇整理后的可运行版本：[下载 `check_pwd.py.txt`](/code/check_pwd.py.txt)

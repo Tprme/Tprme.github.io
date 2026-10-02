@@ -45,7 +45,7 @@ taxonomy_styles:
 
   # 按分类定制配色：每个分类有自己的一张卡片底色
   categories:
-    "周报":
+    "踩坑记录":
       post:
         bg: "#f4f8ff"
         text: "#1f2933"
@@ -60,21 +60,6 @@ taxonomy_styles:
           enable: true
           color: "#3b82f633"
           width: "1px"
-        spark:
-          enable: false
-    "Writeup":
-      post:
-        bg: "#f2fbf7"
-        text: "#14342b"
-      category:
-        bg: "#cdeee0"
-        text: "#14432f"
-      tag_default:
-        bg: "#e0f5ea"
-        text: "#14432f"
-      effects:
-        outline:
-          enable: false
         spark:
           enable: false
     "随笔":

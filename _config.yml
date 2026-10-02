@@ -43,7 +43,15 @@ filename_case: 0
 render_drafts: false
 post_asset_folder: true
 relative_link: false
-future: false # 未到发布日期的文章不会提前出现在已发布的网站上
+# 日期在未来的文章是否照常生成。
+# 原本是 false（未到发布日期的文章不会提前出现），相当于 Hexo 自带的定时发布。
+# 但对本站没用，反而容易踩坑：GitHub Pages 只在 push 时才重建，
+# 就算到了那天也不会有东西来触发构建，文章不会自己冒出来 ——
+# 表现就是「明明写了却看不到」，很容易误以为是文章有问题。
+# 而且本地预览时未来日期的文章会整个消失（连构建产物都没有），
+# 想检查效果还得先改日期。
+# 所以改成 true：日期就是个标注，什么时候发由 push 决定。
+future: true
 syntax_highlighter: highlight.js
 
 # LostStar 主题用 highlight.js 客户端高亮，关掉 Hexo 自带的，避免两套样式打架

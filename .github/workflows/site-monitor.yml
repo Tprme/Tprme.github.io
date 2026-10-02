@@ -1,0 +1,27 @@
+name: Monitor published blog
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check key pages
+        run: |
+          set -eu
+          for url in \
+            https://Tprme.github.io/ \
+            https://Tprme.github.io/about/ \
+            https://Tprme.github.io/archives/ \
+            https://Tprme.github.io/code/check_pwd.py.txt \
+            https://Tprme.github.io/code/c-language-week1.c.txt
+          do
+            curl --fail --silent --show-error --location --retry 3 --max-time 20 "$url" > /dev/null
+            echo "OK $url"
+          done

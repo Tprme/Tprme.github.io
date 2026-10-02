@@ -40,6 +40,9 @@ jobs:
       - name: Build
         run: npx hexo clean && npx hexo generate
 
+      - name: Validate generated site
+        run: npm run check
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -55,3 +58,14 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  failure-summary:
+    if: ${{ always() && (needs.build.result == 'failure' || needs.deploy.result == 'failure') }}
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write failure summary
+        run: |
+          echo "## Blog deployment failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "检查 Build 和 Deploy job 的日志；GitHub 仓库通知设置开启后会收到邮件或站内提醒。" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Hexo blog deployment failed. Check the Build and Deploy job logs."

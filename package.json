@@ -5,6 +5,7 @@
   "scripts": {
     "build": "hexo generate",
     "clean": "hexo clean",
+    "check": "node scripts/ci-check.js",
     "deploy": "hexo deploy",
     "server": "hexo server"
   },

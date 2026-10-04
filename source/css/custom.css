@@ -1422,10 +1422,14 @@ pre code {
     color: inherit;
 }
 
-/* 表格：冷灰斑马纹，去掉原来的天蓝 */
+/* 表格：冷灰斑马纹，去掉原来的天蓝。
+   表头字色跟随文章本身的文字色（--tx-post-text）。
+   之前写死 var(--ly-text) = #1f2933，那是偏冷的蓝黑；
+   文章正文按分类调过色（#2a2338）之后，表头就成了整篇里
+   唯一一块发蓝的字，所以这里改成跟着文章走、拿不到再退回全局。 */
 table:not(.hljs-ln) th {
     background: #eef1f6;
-    color: var(--ly-text);
+    color: var(--tx-post-text, var(--ly-text));
 }
 
 table:not(.hljs-ln) td:nth-child(even) {
@@ -1961,7 +1965,7 @@ table:not(.hljs-ln) td:nth-child(odd) {
 }
 :root[data-theme="dark"] table:not(.hljs-ln) th {
     background-color: #222a35;
-    color: var(--ly-text);
+    color: var(--tx-post-text, var(--ly-text));
 }
 :root[data-theme="dark"] table:not(.hljs-ln) td:nth-child(even) {
     background-color: #1b222b;

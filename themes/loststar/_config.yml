@@ -48,13 +48,14 @@ taxonomy_styles:
     "踩坑记录":
       post:
         bg: "#f4f8ff"
-        text: "#1f2933"
+        # 正文/标题字色：和「随笔」保持一致（原来的 #1f2933 偏冷偏蓝，看着发蓝）
+        text: "#2a2338"
       category:
         bg: "#dbe7ff"
-        text: "#24405f"
+        text: "#33265c"
       tag_default:
         bg: "#e8efff"
-        text: "#24405f"
+        text: "#33265c"
       effects:
         outline:
           enable: true

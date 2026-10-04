@@ -22,6 +22,10 @@ taxonomy_styles:
   enable: true
 
   defaults:
+    # 注意：post.bg 现在其实不起作用了 —— 卡片底色由 source/css/custom.css
+    # 统一接管（浅色 --ly-glass-fill、深色 --ly-surface，都用 !important
+    # 覆盖掉这里内联出去的 --tx-post-bg）。留一项只是为了渲染器有默认值，
+    # 分类里不要再写 post.bg，写了也不会生效，只会误导后来的人。
     post:
       bg: "#ffffff"
       text: "#1f2933"
@@ -43,11 +47,10 @@ taxonomy_styles:
         opacity: 0.35
         duration: "2.6s"
 
-  # 按分类定制配色：每个分类有自己的一张卡片底色
+  # 按分类定制配色。这里只能调字色和胶囊色，调不了卡片底色（见上面 defaults 的说明）。
   categories:
     "踩坑记录":
       post:
-        bg: "#f4f8ff"
         # 正文/标题字色：和「随笔」保持一致（原来的 #1f2933 偏冷偏蓝，看着发蓝）
         text: "#2a2338"
       category:
@@ -56,16 +59,12 @@ taxonomy_styles:
       tag_default:
         bg: "#e8efff"
         text: "#33265c"
-      effects:
-        outline:
-          enable: true
-          color: "#3b82f633"
-          width: "1px"
-        spark:
-          enable: false
+      # 这里原本开着 effects.outline —— 描边是打在 .article 上的 text-shadow，
+      # 会继承给整篇文章的每一个字，等于给每个字套一圈 1px 的蓝色光晕（#3b82f633）。
+      # 浅色模式白底上非常明显，整篇看着发蓝；深色底上几乎看不出来，
+      # 所以之前一直以为是字色的问题。2026-10 按反馈关掉，和「随笔」保持一致。
     "随笔":
       post:
-        bg: "#fbf8ff"
         text: "#2a2338"
       category:
         bg: "#e4dbf7"

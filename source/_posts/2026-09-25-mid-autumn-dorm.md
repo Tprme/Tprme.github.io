@@ -4,7 +4,6 @@ date: 2026-09-25 21:40:00
 categories:
   - 随笔
 tags:
-  - 随笔
   - 中秋
 cover: /images/2026-09-25-moon.webp
 ---

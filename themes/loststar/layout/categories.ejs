@@ -8,7 +8,8 @@
     %>
     <%- partial("_partial/page-heading") %>
     <div class="categories-tags">
-        <% site.categories.forEach((category) => { %>
+        <%# 和标签页一样：按文章数从多到少，再按名字，避免默认的插入顺序 %>
+        <% site.categories.toArray().sort((a, b) => b.length - a.length || a.name.localeCompare(b.name, 'zh')).forEach((category) => { %>
         <%
             const catStyle = getTxCategoryStyle(category.name);
             const isActive = is_category(category.name);

@@ -28,7 +28,9 @@ taxonomy_styles:
     # 分类里不要再写 post.bg，写了也不会生效，只会误导后来的人。
     post:
       bg: "#ffffff"
-      text: "#1f2933"
+      # 没写分类的文章会落到这里。必须和两个分类里的 post.text 保持一致，
+      # 否则「没分类」的那篇会突然变回偏冷的 #1f2933，看着就是发蓝的。
+      text: "#2a2338"
     category:
       bg: "#eef2fb"
       text: "#4a5568"
@@ -78,10 +80,9 @@ taxonomy_styles:
         spark:
           enable: false
 
-  tags:
-    "题解":
-      bg: "#d8ecff"
-      text: "#1c3d5a"
+  # 单个标签也可以在这里单独配色（bg / text），不写就落到上面的 defaults.tag。
+  # 这里原来有一条 "题解"，但没有任何文章用过那个标签，属于死配置，已删掉。
+  # 以后想给某个标签单独上色，照 `"标签名": { bg: "#...", text: "#..." }` 加回来即可。
 
 # 主题图标使用 Font Awesome 6
 # https://fontawesome.com

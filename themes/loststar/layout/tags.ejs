@@ -8,7 +8,10 @@
     %>
     <%- partial("_partial/page-heading") %>
     <div class="categories-tags">
-        <% site.tags.forEach((tag) => { %>
+        <%# 按文章数从多到少排，一样多再按名字排。
+            默认的 site.tags 是插入顺序 —— 也就是「某标签第一次出现在哪篇文章里」，
+            发文顺序一变整个标签墙就跟着乱跳，看着像随机排列。 %>
+        <% site.tags.toArray().sort((a, b) => b.length - a.length || a.name.localeCompare(b.name, 'zh')).forEach((tag) => { %>
         <%
             const tagStyle = getTxTagStyle(tag.name);
             const isActive = is_tag(tag.name);

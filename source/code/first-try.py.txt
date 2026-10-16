@@ -1,0 +1,153 @@
+"""My first Python practice file. These are the exercises I wrote in my first week of Python."""
+
+# check the account and password
+right_account = "leiyan"
+right_passward = 123456
+
+# enter the account and password
+passward = int(input("Enter your password: "))
+account = input("Enter your account: ")
+
+# check four cases
+if passward == right_passward and account == right_account:
+    print("Login successful")
+elif passward == right_passward and account != right_account:
+    print("Login failed, account is incorrect")
+elif passward != right_passward and account == right_account:
+    print("Login failed, password is incorrect")
+else:
+    print("Login failed, both account and password are incorrect")
+
+# enter three sides
+a = int(input("enter a length of a the side of a triangle: "))
+b = int(input("enter a length of b the side of a triangle: "))
+c = int(input("enter a length of c the side of a triangle: "))
+
+# check if the three sides can form a triangle
+if a + b > c and a + c > b and b + c > a:
+    # then check which kind it is
+    if a == b and b == c:
+        print(f"{a}, {b}, {c} The triangle is equilateral")
+    elif a == b or b == c or a == c:
+        print(f"{a}, {b}, {c} The triangle is isosceles")
+    else:
+        print(f"{a}, {b}, {c} The triangle is scalene")
+else:
+    print(f"{a}, {b}, {c} The lengths dont form a triangle")
+
+# enter a number from 1 to 7
+day = input ("day(1-7):")
+
+# print the day with match
+match day:
+    case "1":
+        print("Monday")
+    case 2:
+        print("Tuesday")
+    case 3:
+        print("Wednesday")
+    case 4:
+        print("Thursday")
+    case 5:
+        print("Friday")
+    case 6 | 7:
+        print("Weekend")
+    case _:
+        print("Invalid input")
+
+# enter two numbers and one operator
+num1 = float(input("Enter a number: "))
+num2 = float(input("Enter another number: ")) 
+
+oper = input("Enter an operator (+, -, *, /): ")
+
+# calculate with match
+match oper:
+
+    case "+":
+        print(f"{num1} + {num2} = {num1 + num2}")
+    case "-":
+        print(f"{num1} - {num2} = {num1 - num2}")
+    case "*":
+        print(f"{num1} * {num2} = {num1 * num2}")
+    case "/" if num2 != 0:
+        print(f"{num1}/ {num2} = {num1 /num2}")
+    case _:
+        print("invalid operator")   
+
+# print the same sentence ten times
+i = 0 
+
+while i <10:
+    print("the life is breif,but i don't use the python.")
+    i += 1
+else:
+    print("end of the loop")
+
+# add up all the odd numbers from 1 to 100
+total = 0 
+
+for i in  range(1, 101):
+    # keep only the odd numbers
+    if i % 2==1:
+        total += i
+print(f"odd total: {total}")
+
+# enter the length and the width
+length = int(input("enter your length of the side of a quadrangle:"))
+
+width = int(input ("enter your width of the side of a quadrangle:"))
+
+# print a rectangle of stars
+for j in range(width):
+     for i in range (length):
+         print ("*",end=" ")
+     print()
+
+# print the multiplication table
+for i in range(1, 10):
+    for j  in range(1 , i + 1):
+        print(f"{j} * {i} = {i * j}",end =  "\t")
+    print()
+
+# keep asking until the login is successful
+while True:
+    #enter accont and password 
+    account = input("please enter your account:")
+    password = input("please enter your password:")
+    
+    #check if the account and password are empty
+    if account == "" or password == "":
+        print("account or password can't be empty")
+        continue
+    
+    #begin to check 
+    if password == "123456" and account == "leiyan":
+        print("login successful")
+        break
+    elif account == "Tprme" and password == "456789":
+        print("login successful")
+        break
+    elif account == "staying-power" and password == "234567":
+        print("login successful")
+        break 
+    else:
+        print("login failed")
+        continue
+
+# generate a random number between 1 to 100
+import random
+random_num = random.randint(1,100)
+
+# begin the guessing game
+while True:
+    guess = int(input("Enter a number between 1 and 100: "))
+    if guess < random_num:
+        print("it's low.")
+        
+    elif guess > random_num:
+        print("it's high.")
+        
+    else:
+        print("you guessed it.")
+        break

@@ -127,7 +127,7 @@ for i in range(1, 10):
 
 This one confused me for a long time. At first I wrote `range(1, i)`. The last column was missing. I changed it to `range(1, i + 1)`. Then it was right. But I did not know why. Later, I knew: `range()` does not include the last number, so `range(1, i)` stops at `i - 1`.
 
-At first, I didn't want to learn English at all. But VSCode always guessed what I was going to type, and that was amazing. It made me want to learn English, so it became my first English teacher.
+At first, I didn't want to learn English at all. But VSCode always guessed what I was going to type, and that was amazing. Every time it completed the English words for me, I felt satisfied. I wanted to be as good as it. So I started to learn English. VSCode became my first English teacher.
 
 Last but not least, please don't copy the code when you don't understand its meaning.
 

@@ -15,7 +15,7 @@ I learned Python this week. At first, I just watched the videos on Bilibili, but
 
 At the beginning, it really was easy. But I felt slow, and although I already knew the basics of C, I got anxious when I watched the `if` statement. It was not about how hard it was. The reason was that I was so impatient that I couldn't focus. After that, I calmed myself down, and I began to write my first Python code.
 
-This week I started with `if` statements and `match`, because I learned the basics of Python during the summer holidays. At that time, I just copied the code from DeepSeek, and I didn't even understand what the code meant. But now I understand what I copied, and I wrote the password check again. The triangle check came from Heima's course on Bilibili.
+This week I started with `if` statements and `match`, because I learned the basics of Python during the summer holidays. At that time, I just copied the code from DeepSeek, and I didn't even understand what the code meant. But now I understand what I copied, and I wrote the password check again.
 
 ```python
 right_account = "leiyan"
@@ -35,6 +35,24 @@ else:
 ```
 
 I wrote this code in English, but I didn't find a mistake: `passward`. The code still coulde run, because I spelled it wrong in the same way everwhrere. The computer didn't care. I found it this week, when I read the code again.
+
+The triangle check came from Heima's course on Bilibili:
+
+```python
+a = int(input("enter a length of a the side of a triangle: "))
+b = int(input("enter a length of b the side of a triangle: "))
+c = int(input("enter a length of c the side of a triangle: "))
+
+if a + b > c and a + c > b and b + c > a:
+    if a == b and b == c:
+        print(f"{a}, {b}, {c} The triangle is equilateral")
+    elif a == b or b == c or a == c:
+        print(f"{a}, {b}, {c} The triangle is isosceles")
+    else:
+        print(f"{a}, {b}, {c} The triangle is scalene")
+else:
+    print(f"{a}, {b}, {c} The lengths dont form a triangle")
+```
 
 Then the `match` part. This is the code:
 

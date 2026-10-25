@@ -2494,3 +2494,125 @@ body::after {
     background-size: 180px 180px;
     background-repeat: repeat;
 }
+/* ============================================================
+   动效增强 第二批：③ 卡片光标聚光  ④ 页面切换过渡
+   ============================================================ */
+
+/* --- ③ 卡片光标聚光 ---
+   isolation:isolate 让卡片成为独立层叠上下文，
+   ::before 用 z-index:-1 就正好落在「卡片底色之上、内容之下」。
+   刻意不用 overflow:hidden —— .go-post 那个按钮是故意伸出卡片下沿的，
+   一旦裁切就废了。 */
+#home-posts .post {
+    position: relative;
+    isolation: isolate;
+}
+#home-posts .post::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    background: radial-gradient(
+        320px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(39, 56, 76, 0.14),
+        transparent 62%
+    );
+}
+#home-posts .post:hover::before { opacity: 1; }
+
+/* 跟随光标的描边高光。
+   浅色卡片上光斑本身太淡，看不出来；一圈会跟着光标走的细边
+   才是「高级感」真正的信号 —— 顺带给卡片补了一个明确的 hover 反馈。
+   用 mask 把渐变裁成只剩 1.5px 的边，不遮内容。 */
+#home-posts .post::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    padding: 1.5px;
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(39, 56, 76, 0.42),
+        transparent 58%
+    );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+#home-posts .post:hover::after { opacity: 1; }
+
+[data-theme="dark"] #home-posts .post::after {
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(255, 255, 255, 0.55),
+        transparent 58%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #home-posts .post::after { display: none; }
+}
+
+/* 深色模式下白色光斑才看得见 */
+[data-theme="dark"] #home-posts .post::before {
+    background: radial-gradient(
+        320px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(255, 255, 255, 0.10),
+        transparent 62%
+    );
+}
+
+/* 减弱动效：不跟随光标 */
+@media (prefers-reduced-motion: reduce) {
+    #home-posts .post::before { display: none; }
+}
+
+/* --- ④ 页面切换过渡（View Transitions，跨文档） ---
+   Chrome 126+ / Safari 18+ 支持；不支持的浏览器完全无感，还是原来的跳转。 */
+@view-transition {
+    navigation: auto;
+}
+
+/* 旧页快出（200ms）、新页慢进（420ms）——
+   时长不对称是「有重量」的关键，两边一样长就会显得机械。 */
+::view-transition-old(root) {
+    animation: ly-vt-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+::view-transition-new(root) {
+    animation: ly-vt-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes ly-vt-out {
+    to { opacity: 0; }
+}
+@keyframes ly-vt-in {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0);
+    }
+}
+
+/* 页面切换本身就是一次淡入，再叠一个加载层动画只会互相打架。
+   只在支持 view-transition-name 的浏览器里关掉加载层。 */
+@supports (view-transition-name: none) {
+    #loading { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}

@@ -145,9 +145,42 @@
         }, 2500);
     }
 
+    /* ---------- ③ 卡片光标聚光 ---------- */
+    function initSpotlight() {
+        if (reduceMotion) return;
+        /* 触屏没有 hover，装了也是空转 */
+        if (window.matchMedia("(hover: none)").matches) return;
+
+        var cards = document.querySelectorAll("#home-posts .post");
+        if (!cards.length) return;
+
+        Array.prototype.forEach.call(cards, function (card) {
+            var frame = 0;
+            var pending = null;
+
+            card.addEventListener("pointermove", function (event) {
+                pending = event;
+                /* rAF 节流：pointermove 一秒能来上百次，
+                   每次都写样式会让主线程一直在做样式重算。
+                   读取 rect 也放进 rAF 里，避免读写交错触发同步布局。 */
+                if (frame) return;
+                frame = requestAnimationFrame(function () {
+                    frame = 0;
+                    if (!pending) return;
+
+                    var rect = card.getBoundingClientRect();
+                    card.style.setProperty("--ly-mx", pending.clientX - rect.left + "px");
+                    card.style.setProperty("--ly-my", pending.clientY - rect.top + "px");
+                    pending = null;
+                });
+            });
+        });
+    }
+
     function boot() {
         initSmoothScroll();
         initReveal();
+        initSpotlight();
     }
 
     if (document.readyState === "loading") {

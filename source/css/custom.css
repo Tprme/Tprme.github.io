@@ -3090,3 +3090,42 @@ html[data-theme="dark"] .ly-toc__list a.is-current {
         401px 401px, 401px 401px, 401px 401px,
         233px 233px, 233px 233px, 233px 233px;
 }
+
+/* ============================================================
+   自定义光标（旧版 Roblox 箭头 / 手型）
+   ------------------------------------------------------------
+   为什么 .cur 打头：那是 Windows 原生光标格式，这两个文件里各含
+   16/32/48/64/128 五档，浏览器会按屏幕缩放自动挑最合适的一档，
+   HiDPI（Windows 缩放 125%/150%）下不会发虚。
+   后面再跟一张 32x32 PNG 兜底：Safari 不认 .cur，会退到这一张。
+
+   写法要点：cursor 的 url 列表按顺序尝试，「热点坐标」写在最后一个 url 之后
+   （热点是图片上真正对应鼠标位置的像素点，箭头在左上、手型略偏右下）。
+     箭头 32x32 热点 (2,1)
+     手型 32x32 热点 (3,1)
+
+   只在「有真实指针」的设备上启用：触屏设备光标没意义，
+   不启用还能省掉约 27KB 下载。
+   ============================================================ */
+@media (hover: hover) and (pointer: fine) {
+    html,
+    body {
+        cursor: url("/images/cursor-default.cur"), url("/images/cursor-default.png") 2 1, auto;
+    }
+
+    /* 可点元素换成手型。刻意不包含 input[type="text"] 之类 ——
+       输入框上的 I 型光标是功能性的，换掉会让人不知道能不能打字。 */
+    a,
+    button,
+    select,
+    summary,
+    label,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    input[type="checkbox"],
+    input[type="radio"] {
+        cursor: url("/images/cursor-pointer.cur"), url("/images/cursor-pointer.png") 3 1, pointer;
+    }
+}

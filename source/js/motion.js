@@ -151,12 +151,23 @@
         /* 触屏没有 hover，装了也是空转 */
         if (window.matchMedia("(hover: none)").matches) return;
 
-        var cards = document.querySelectorAll("#home-posts .post");
+        /* 首页文章卡片 + 侧边个人资料卡，共用同一套聚光效果 */
+        var cards = document.querySelectorAll("#home-posts .post, #home-card #card-div");
         if (!cards.length) return;
 
         Array.prototype.forEach.call(cards, function (card) {
             var frame = 0;
             var pending = null;
+
+            /* 描边高光挂在真实子元素上，不用伪元素 ——
+               .post::after 被主题的镜面反光（--ly-glass-specular）占着，
+               .post::before 被下面的光标光斑占着，两个都不能动。 */
+            if (!card.querySelector(":scope > .ly-ring")) {
+                var ring = document.createElement("i");
+                ring.className = "ly-ring";
+                ring.setAttribute("aria-hidden", "true");
+                card.appendChild(ring);
+            }
 
             card.addEventListener("pointermove", function (event) {
                 pending = event;
@@ -177,10 +188,254 @@
         });
     }
 
+    /* ---------- 实验：液态玻璃导航（折射）----------
+       为什么要低模糊：backdrop-filter 的模糊和位移是同一条管线，
+       blur 16px 之后背景已经没有细节了，再位移一团糊 = 看不出任何效果。
+       所以真折射必须配低模糊（2-4px），代价是导航文字要在背后内容上抢对比度。
+
+       这个效果默认不开启：只有本函数跑通（把 SVG 滤镜注入 DOM 并给
+       <html> 打上 ly-nav-liquid）之后，custom.css 里那几条规则才生效。
+       JS 不跑 / 被拦 = 导航维持原样，不会因为 url(#) 取不到而丢掉模糊变透明。 */
+    function initNavLiquid() {
+        if (reduceMotion) return;
+        if (!window.Lenis && !document.documentElement.classList.contains("lenis")) {
+            /* 没有平滑滚动也能用，这里只是不额外拦 */
+        }
+
+        var svgNS = "http://www.w3.org/2000/svg";
+        var map =
+            "data:image/svg+xml," +
+            encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="60">' +
+                    "<defs>" +
+                    '<linearGradient id="gx" x1="0" y1="0" x2="1" y2="0">' +
+                    '<stop offset="0" stop-color="rgb(0,0,0)"/>' +
+                    '<stop offset="0.10" stop-color="rgb(128,0,0)"/>' +
+                    '<stop offset="0.90" stop-color="rgb(128,0,0)"/>' +
+                    '<stop offset="1" stop-color="rgb(255,0,0)"/>' +
+                    "</linearGradient>" +
+                    '<linearGradient id="gy" x1="0" y1="0" x2="0" y2="1">' +
+                    '<stop offset="0" stop-color="rgb(0,0,0)"/>' +
+                    '<stop offset="0.20" stop-color="rgb(0,128,0)"/>' +
+                    '<stop offset="0.80" stop-color="rgb(0,128,0)"/>' +
+                    '<stop offset="1" stop-color="rgb(0,255,0)"/>' +
+                    "</linearGradient>" +
+                    "</defs>" +
+                    '<rect width="300" height="60" fill="rgb(0,0,0)"/>' +
+                    '<rect width="300" height="60" fill="url(#gx)"/>' +
+                    '<rect width="300" height="60" fill="url(#gy)" style="mix-blend-mode:screen"/>' +
+                    "</svg>"
+            );
+
+        var svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "0");
+        svg.setAttribute("height", "0");
+        svg.setAttribute("aria-hidden", "true");
+        svg.setAttribute("style", "position:absolute;pointer-events:none");
+
+        var filter = document.createElementNS(svgNS, "filter");
+        filter.setAttribute("id", "ly-nav-liquid");
+        filter.setAttribute("x", "0");
+        filter.setAttribute("y", "0");
+        filter.setAttribute("width", "100%");
+        filter.setAttribute("height", "100%");
+        filter.setAttribute("filterUnits", "objectBoundingBox");
+        filter.setAttribute("color-interpolation-filters", "sRGB");
+
+        var feImage = document.createElementNS(svgNS, "feImage");
+        feImage.setAttribute("href", map);
+        feImage.setAttribute("result", "map");
+        feImage.setAttribute("preserveAspectRatio", "none");
+
+        var feDisp = document.createElementNS(svgNS, "feDisplacementMap");
+        feDisp.setAttribute("in", "SourceGraphic");
+        feDisp.setAttribute("in2", "map");
+        feDisp.setAttribute("scale", "16");
+        feDisp.setAttribute("xChannelSelector", "R");
+        feDisp.setAttribute("yChannelSelector", "G");
+
+        filter.appendChild(feImage);
+        filter.appendChild(feDisp);
+        svg.appendChild(filter);
+        document.body.appendChild(svg);
+
+        document.documentElement.classList.add("ly-nav-liquid");
+    }
+
+    /* ---------- 悬浮目录 ----------
+       只在文章页、且标题 >= 3 个时才出现。
+       位置放右侧留白里（.article 是 900px 定宽，1440 视口左右各剩 270px），
+       不压正文 —— 代价是后面只有页面底色，折射在这里看不出来，
+       它只是「磨砂玻璃面板」，不是折射展示位。 */
+    function initToc() {
+        var content = document.querySelector(".article > .content");
+        if (!content) return;
+
+        var heads = Array.prototype.slice.call(content.querySelectorAll("h2, h3"));
+        if (heads.length < 3) return;
+
+        var nav = document.createElement("nav");
+        nav.className = "ly-toc";
+        nav.setAttribute("aria-label", "文章目录");
+
+        var title = document.createElement("div");
+        title.className = "ly-toc__title";
+        title.textContent = "目录";
+        nav.appendChild(title);
+
+        var list = document.createElement("ol");
+        list.className = "ly-toc__list";
+        nav.appendChild(list);
+
+        var items = [];
+        heads.forEach(function (heading) {
+            if (!heading.id) return;
+            var li = document.createElement("li");
+            li.className = heading.tagName === "H3" ? "is-sub" : "is-top";
+            var a = document.createElement("a");
+            a.href = "#" + heading.id;
+            a.textContent = (heading.textContent || "").replace(/\s+/g, " ").trim();
+            li.appendChild(a);
+            list.appendChild(li);
+            items.push({ a: a, heading: heading });
+        });
+        if (!items.length) return;
+
+        document.body.appendChild(nav);
+
+        var current = null;
+
+        function update() {
+            /* 取「已经滚过阈值 140px 的最后一个标题」作为当前章节。
+               标题在文档里天然有序，所以一旦遇到第一个还没到的就可以停。 */
+            var best = null;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].heading.getBoundingClientRect().top - 140 <= 0) best = items[i];
+                else break;
+            }
+            if (!best) best = items[0];
+            if (best === current) return;
+            if (current) current.a.classList.remove("is-current");
+            best.a.classList.add("is-current");
+            current = best;
+        }
+
+        var ticking = false;
+        window.addEventListener(
+            "scroll",
+            function () {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(function () {
+                    ticking = false;
+                    update();
+                });
+            },
+            { passive: true }
+        );
+        update();
+    }
+
+    /* ---------- 照片灯箱工具栏 ----------
+       ★ 这是全站唯一「玻璃后面真的是照片」的地方 ——
+         Apple 的规范里 .clear（高透版）就是给浮在照片/视频上的组件用的，
+         折射在照片上才看得出来。 */
+
+    function initPhotoBar() {
+        var overlay = document.getElementById("preview");
+        var img = document.getElementById("preview-content");
+        if (!overlay || !img) return;
+
+        var bar = document.createElement("div");
+        bar.className = "ly-photo-bar";
+        bar.setAttribute("role", "toolbar");
+        bar.setAttribute("aria-label", "图片操作");
+
+        var name = document.createElement("span");
+        name.className = "ly-photo-bar__name";
+        bar.appendChild(name);
+
+        var open = document.createElement("a");
+        open.className = "ly-photo-bar__btn";
+        open.target = "_blank";
+        open.rel = "noopener";
+        open.textContent = "原图";
+        bar.appendChild(open);
+
+        var close = document.createElement("button");
+        close.type = "button";
+        close.className = "ly-photo-bar__btn is-close";
+        close.textContent = "关闭";
+        bar.appendChild(close);
+
+        /* 关键：点击工具栏不能冒泡到 #preview —— 那边的监听是「点任意处关闭」。
+           关闭按钮反过来主动触发一次 overlay 的 click，复用主题原有逻辑，
+           不去碰 Vue 的 previewShow 状态。 */
+        bar.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+        close.addEventListener("click", function () {
+            overlay.click();
+        });
+
+        overlay.appendChild(bar);
+
+        /* 工具栏必须压在照片上，折射才有意义 ——
+           固定贴在视口底部的话，它下面是 #preview 那层 95% 白遮罩，等于什么都没有。
+           所以按图片的实际矩形定位到图片底部内侧，并把宽度限制在图片宽度以内。 */
+        function placeBar() {
+            var r = img.getBoundingClientRect();
+            var pr = overlay.getBoundingClientRect();
+            if (!r.width || !r.height) return;
+            bar.style.left = r.left - pr.left + r.width / 2 + "px";
+            bar.style.bottom = pr.bottom - r.bottom + 14 + "px";
+            bar.style.maxWidth = Math.max(180, Math.min(r.width - 24, 620)) + "px";
+        }
+
+        img.addEventListener("load", placeBar);
+
+        /* 主题是给每个 <img> 绑点击来开预览的，这里用捕获阶段提前记一下
+           被点的是哪张，等它把 src 换上去之后再同步工具栏文字并重新定位。 */
+        document.addEventListener(
+            "click",
+            function (event) {
+                var target = event.target;
+                if (!target || target.tagName !== "IMG") return;
+                setTimeout(function () {
+                    name.textContent = (img.alt || "").trim();
+                    open.href = img.currentSrc || img.src || "#";
+                    placeBar();
+                }, 0);
+            },
+            true
+        );
+    }
+
+    /* ---------- C 实验：页面极光背景 ----------
+       为什么需要这一层：折射是「把背景弯折」，可你原来的页面背景是一整片
+       平滑渐变 —— 弯它等于没弯。这一层放的是中频（400-600px 尺度）的柔和色斑，
+       正好是玻璃能弯、又不会干扰阅读的频段。
+
+       ★ 和卡片半透明是配套的：只加背景不改半透明 = 白改；
+         只改半透明不加背景 = 透出一片灰。必须两个一起。
+       开关：<html> 上的 ly-glass-bg，由本函数注入成功后添加。 */
+    function initAurora() {
+        if (document.querySelector(".ly-aurora")) return;
+        var layer = document.createElement("div");
+        layer.className = "ly-aurora";
+        layer.setAttribute("aria-hidden", "true");
+        document.body.insertBefore(layer, document.body.firstChild);
+        document.documentElement.classList.add("ly-glass-bg");
+    }
+
     function boot() {
         initSmoothScroll();
         initReveal();
         initSpotlight();
+        initNavLiquid();
+        initToc();
+        initPhotoBar();
+        initAurora();
     }
 
     if (document.readyState === "loading") {

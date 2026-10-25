@@ -2524,48 +2524,6 @@ body::after {
 }
 #home-posts .post:hover::before { opacity: 1; }
 
-/* 跟随光标的描边高光。
-   浅色卡片上光斑本身太淡，看不出来；一圈会跟着光标走的细边
-   才是「高级感」真正的信号 —— 顺带给卡片补了一个明确的 hover 反馈。
-   用 mask 把渐变裁成只剩 1.5px 的边，不遮内容。 */
-#home-posts .post::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
-    padding: 1.5px;
-    background: radial-gradient(
-        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
-        rgba(39, 56, 76, 0.42),
-        transparent 58%
-    );
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    mask-composite: exclude;
-}
-#home-posts .post:hover::after { opacity: 1; }
-
-[data-theme="dark"] #home-posts .post::after {
-    background: radial-gradient(
-        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
-        rgba(255, 255, 255, 0.55),
-        transparent 58%
-    );
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #home-posts .post::after { display: none; }
-}
-
 /* 深色模式下白色光斑才看得见 */
 [data-theme="dark"] #home-posts .post::before {
     background: radial-gradient(
@@ -2615,4 +2573,478 @@ body::after {
     ::view-transition-new(root) {
         animation: none !important;
     }
+}
+
+/* ---------- 卡片描边高光（挂在 JS 注入的 .ly-ring 上）----------
+   ★ 为什么不用 ::after：那个伪元素主题已经用来放 --ly-glass-specular 镜面反光了，
+     占用它会把那层反光顶掉（这个错真犯过，卡片会变平）。
+     ::before 也已经被光标光斑占着，所以只能用一个真实子元素。 */
+#home-posts .post > .ly-ring {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    padding: 1.5px;
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(39, 56, 76, 0.42),
+        transparent 58%
+    );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+#home-posts .post:hover > .ly-ring { opacity: 1; }
+
+[data-theme="dark"] #home-posts .post > .ly-ring {
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(255, 255, 255, 0.55),
+        transparent 58%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #home-posts .post > .ly-ring { display: none; }
+}
+/* ============================================================
+   A. 玻璃材质优化：消色带（dither）+ 边缘厚度
+   ============================================================ */
+
+:root {
+    /* 极淡噪点。大面积渐变在 8bit 屏上必然出色带，
+       叠一层噪点把色阶边界打散，就是最简单的 dither。
+       72px 平铺，2 个八度，够用且体积小。 */
+    --ly-glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+/* 卡片：把噪点作为最上一层背景，overlay 混合 —— 只打散色阶，不改色调 */
+:is(#home-posts .post, .article[data-category]) {
+    background-image: var(--ly-glass-grain), var(--ly-glass-tint);
+    background-blend-mode: overlay, normal;
+}
+
+/* 厚度：底部内暗边 + 内侧柔影。
+   原来是 inset 0 -1px 0 rgba(16,24,40,0.035)，几乎看不见；
+   换成冷灰的「玻璃底边」，再补一道从底部往上衰减的柔影，玻璃就有板厚了。 */
+:is(#home-posts .post, .article[data-category]) {
+    box-shadow:
+        var(--ly-glass-inset),
+        inset 0 -1px 0 rgba(159, 173, 194, 0.42),
+        inset 0 -10px 18px -12px rgba(16, 24, 40, 0.16),
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 10px 30px rgba(16, 24, 40, 0.07);
+}
+
+[data-theme="dark"] :is(#home-posts .post, .article[data-category]) {
+    box-shadow:
+        var(--ly-glass-inset),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.10),
+        inset 0 -10px 18px -12px rgba(0, 0, 0, 0.55),
+        0 1px 2px rgba(0, 0, 0, 0.3),
+        0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================
+   A 扩展到「个人资料卡」和「归档列表卡」
+   （#card-div / .timeline-content 与首页卡片共用同一套玻璃语言）
+   ============================================================ */
+
+/* 消色带：噪点叠在染色渐变之上 */
+:is(.timeline-content, #home-card #card-div) {
+    background-image: var(--ly-glass-grain), var(--ly-glass-tint);
+    background-blend-mode: overlay, normal;
+}
+
+/* 厚度：底部内暗边 + 内侧柔影，再接原有的 --ly-glass-shadow。
+   box-shadow 是「先写的在上面」，所以新增的两层放最前面。 */
+:is(.timeline-content, #home-card #card-div) {
+    box-shadow:
+        inset 0 -1px 0 rgba(159, 173, 194, 0.42),
+        inset 0 -10px 18px -12px rgba(16, 24, 40, 0.16),
+        var(--ly-glass-shadow);
+}
+
+[data-theme="dark"] :is(.timeline-content, #home-card #card-div) {
+    box-shadow:
+        inset 0 -1px 0 rgba(255, 255, 255, 0.10),
+        inset 0 -10px 18px -12px rgba(0, 0, 0, 0.5),
+        var(--ly-glass-shadow);
+}
+
+/* ---- 资料卡也上「光标聚光 + 描边高光」 ----
+   和首页卡片同一套：::before 放光斑（z-index:-1，压在内容下），
+   描边放在 JS 注入的 .ly-ring 子元素上。
+   #card-div 上没有别的伪元素规则，所以 ::before 可以放心用。 */
+:is(#home-posts .post, #home-card #card-div) {
+    position: relative;
+    isolation: isolate;
+}
+
+:is(#home-posts .post, #home-card #card-div)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    background: radial-gradient(
+        320px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(39, 56, 76, 0.14),
+        transparent 62%
+    );
+}
+:is(#home-posts .post, #home-card #card-div):hover::before { opacity: 1; }
+
+[data-theme="dark"] :is(#home-posts .post, #home-card #card-div)::before {
+    background: radial-gradient(
+        320px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(255, 255, 255, 0.10),
+        transparent 62%
+    );
+}
+
+:is(#home-posts .post, #home-card #card-div) > .ly-ring {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    padding: 1.5px;
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(39, 56, 76, 0.42),
+        transparent 58%
+    );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+:is(#home-posts .post, #home-card #card-div):hover > .ly-ring { opacity: 1; }
+
+[data-theme="dark"] :is(#home-posts .post, #home-card #card-div) > .ly-ring {
+    background: radial-gradient(
+        300px circle at var(--ly-mx, 50%) var(--ly-my, 50%),
+        rgba(255, 255, 255, 0.55),
+        transparent 58%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(#home-posts .post, #home-card #card-div)::before,
+    :is(#home-posts .post, #home-card #card-div) > .ly-ring { display: none; }
+}
+
+/* ============================================================
+   资料卡边缘修正
+   ------------------------------------------------------------
+   问题：`#card-div` 自己没有 border-radius（主题的 10px 给在
+   外层 #card-style 上、靠 overflow 裁），所以：
+     1. 卡片边框是方角，只被外层裁成 10px，比左边文章卡（20px）硬；
+     2. 我加的 border-radius:inherit（光斑 / 描边）拿到的是 0，也是方的。
+   做法：内外两层圆角统一到 16px，让边框、描边、光斑、裁切全部对齐；
+   同时把底边那道内暗线收弱 —— 资料卡底色半透明，0.42 会比文章卡更扎眼。
+   ============================================================ */
+#home-card #card-style {
+    border-radius: 16px;
+}
+
+#home-card #card-div {
+    border-radius: 16px;
+    /* 补实心底色：原来 background-color 是 transparent，透出页面底色，
+       资料卡整体偏灰、1px 描边也没了「白底衬托」而显得发硬。
+       用和文章卡片同一个 --ly-glass-fill，两块才是一套材质。 */
+    background-color: var(--ly-glass-fill);
+    /* 底边收弱：0.42 -> 0.26，内侧柔影 0.16 -> 0.10 */
+    box-shadow:
+        inset 0 -1px 0 rgba(159, 173, 194, 0.26),
+        inset 0 -10px 18px -12px rgba(16, 24, 40, 0.10),
+        var(--ly-glass-shadow);
+}
+
+[data-theme="dark"] #home-card #card-div {
+    box-shadow:
+        inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 -10px 18px -12px rgba(0, 0, 0, 0.4),
+        var(--ly-glass-shadow);
+}
+
+/* ============================================================
+   实验：液态玻璃导航（真折射）
+   ------------------------------------------------------------
+   只在 <html class="ly-nav-liquid"> 时生效 —— 这个 class 由 js/motion.js
+   注入完 SVG 滤镜之后才加。所以 JS 没跑 / 被拦时导航维持原样，
+   不会因为 url(#ly-nav-liquid) 取不到而整条 backdrop-filter 失效、导航变透明。
+
+   为什么要「低模糊」：模糊和位移走同一条 backdrop 管线。
+   原本 blur(16px) 已经把背景糊成一片，再位移等于位移一团糊，看不出东西。
+   降到 3px 后背景还留着形状，位移才看得见 —— 代价是导航文字要在
+   背后内容上抢对比度，所以底色抬到 52%（原来 62%）。
+
+   另外要一起覆盖 html.ly-scrolling 那条：
+   你原来为了解决手机掉帧，滚动时把模糊关掉、底色换 94% 实心。
+   而内容只在滚动时才动 —— 那条规则不放开，就永远看不到「内容从玻璃后流过」。
+   ★ 这条是本实验唯一有性能代价的地方，正式上线前必须重新评估。 */
+/* 两种状态用同一组值，且选择器显式带上 .ly-scrolling。
+   不这么做的话：主题那条 html.ly-scrolling #menu 和这条特异性相同，
+   谁生效只取决于书写顺序 —— 太脆。写成同一组更容易读，也不会再出现
+   「滚动时胶囊突然变实」那种跳变。 */
+html.ly-nav-liquid #menu,
+html.ly-nav-liquid.ly-scrolling #menu {
+    /* 对齐照片灯箱工具栏那套配方：
+       底色 35%（原来 52%）、模糊 2px —— 模糊越低保真越多，位移才弯得动。 */
+    background: color-mix(in srgb, var(--ly-surface) 35%, transparent);
+    backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
+    -webkit-backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+        0 10px 30px rgba(16, 24, 40, 0.14);
+}
+
+/* ★ 这里【故意】不再写 html.ly-nav-liquid.ly-scrolling 的覆盖。
+   主题原本滚动时会「关模糊 + 换 90% 实心底」，那是为解决手机掉帧。
+   但两个状态底色差太多，滚动时胶囊会肉眼可见地变实一下 —— 看起来像 bug。
+   现在取消切换，两种状态完全一致。
+
+   为什么现在敢这么做：卡片那 8 层 backdrop-filter 已经全部去掉，
+   导航自己只剩 blur(2px)（原来是 16px，采样半径差 8 倍）。
+
+   ⚠️ 如果真机上滚动仍然掉帧，把下面这段取消注释就能退回原来的优化 ——
+   代价是滚动时会看到胶囊突然变实：
+   html.ly-nav-liquid.ly-scrolling #menu {
+       background: color-mix(in srgb, var(--ly-surface) 90%, transparent);
+       backdrop-filter: none;
+       -webkit-backdrop-filter: none;
+   }
+*/
+
+/* ============================================================
+   悬浮目录（磨砂玻璃面板）
+   ------------------------------------------------------------
+   位置在 .article（900px 定宽）右侧的留白里，不压正文。
+   所以它后面只有页面底色 —— 折射在这里看不出来，它是「磨砂面板」而不是折射展示位。
+   需要视口够宽才放得下：900 卡片 + 196 面板 + 18 边距，约 1320px 起。
+   ============================================================ */
+.ly-toc {
+    position: fixed;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    z-index: 30;
+    display: none;
+    width: 196px;
+    max-height: 58vh;
+    overflow-y: auto;
+    padding: 14px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--ly-glass-stroke);
+    background-color: color-mix(in srgb, var(--ly-glass-fill) 76%, transparent);
+    background-image: var(--ly-glass-grain), var(--ly-glass-tint);
+    background-blend-mode: overlay, normal;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 0 rgba(159, 173, 194, 0.26),
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 10px 30px rgba(16, 24, 40, 0.10);
+    /* 不加 backdrop-filter：目录后面只有页面底色，模糊了也是一片平滑色，
+       等于白付一层每帧重采样。要玻璃感用半透明底色 + 颗粒就够了。 */
+    font-size: 12.5px;
+    line-height: 1.6;
+    scrollbar-width: thin;
+}
+@media (min-width: 1320px) {
+    .ly-toc { display: block; }
+}
+
+.ly-toc__title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ly-text-soft, #5c6b72);
+    margin: 0 0 8px 4px;
+}
+
+.ly-toc__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: none;
+}
+.ly-toc__list li { margin: 0; }
+.ly-toc__list li.is-sub a { padding-left: 18px; font-size: 12px; opacity: 0.82; }
+
+.ly-toc__list a {
+    display: block;
+    padding: 4px 8px;
+    border-radius: 7px;
+    color: var(--ly-text-soft, #4a5a66);
+    text-decoration: none;
+    /* 长标题最多两行，超出省略 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: background-color 200ms ease, color 200ms ease;
+}
+.ly-toc__list a:hover {
+    background-color: rgba(127, 145, 168, 0.12);
+    color: var(--ly-text, #1a2233);
+}
+.ly-toc__list a.is-current {
+    background-color: rgba(127, 145, 168, 0.16);
+    color: var(--ly-text, #1a2233);
+    font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ly-toc__list a { transition: none; }
+}
+
+/* ============================================================
+   照片灯箱工具栏（真折射）
+   ------------------------------------------------------------
+   ★ 全站唯一「玻璃后面真的是照片」的表面。
+     Apple 规范里 .clear（高透版）就是给浮在照片/视频上的组件用的。
+   低模糊（2px）才能留细节给位移弯折；
+   滤镜复用 navigation 注入的那个（#ly-nav-liquid），scale 16 对工具栏也合适。
+   深色照片上白字 + 投影保证可读，浅色照片靠玻璃底色压一层。
+   ============================================================ */
+.ly-photo-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(92vw, 620px);
+    padding: 7px 9px 7px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background-color: rgba(20, 24, 32, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 10px 30px rgba(0, 0, 0, 0.28);
+    backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
+    -webkit-backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
+    font-size: 13px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.ly-photo-bar__name {
+    max-width: 240px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.ly-photo-bar__btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1;
+    color: inherit;
+    background-color: rgba(255, 255, 255, 0.18);
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 200ms ease;
+}
+.ly-photo-bar__btn:hover { background-color: rgba(255, 255, 255, 0.32); }
+.ly-photo-bar__btn.is-close { background-color: rgba(255, 255, 255, 0.28); }
+
+@media (prefers-reduced-motion: reduce) {
+    .ly-photo-bar__btn { transition: none; }
+}
+@media (max-width: 640px) {
+    .ly-photo-bar { bottom: 16px; font-size: 12px; padding: 6px 8px 6px 13px; }
+    .ly-photo-bar__name { max-width: 130px; }
+}
+
+/* ============================================================
+   C 实验：极光背景 + 半透明卡片（让浅色模式也能看见液态玻璃）
+   ------------------------------------------------------------
+   原理：折射 = 把背景弯折。原来的页面背景是一整片平滑渐变，弯它看不见。
+   这一层放的是 400-600px 尺度的柔和色斑 —— 中频细节，玻璃能弯、又不干扰阅读。
+
+   ★ 和「卡片半透明」必须成对出现：
+     只加背景不改半透明 → 白改；
+     只改半透明不加背景 → 透出一片灰。
+   ★ 只作用于首页卡片和资料卡，不含文章大卡：
+     文章卡能有 4000px 高，那面积的 backdrop 采样 + 位移开销太大。
+   ============================================================ */
+
+.ly-aurora {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(560px circle at 12% 10%, rgba(255, 143, 171, 0.18), transparent 62%),
+        radial-gradient(620px circle at 88% 6%, rgba(177, 140, 255, 0.16), transparent 64%),
+        radial-gradient(700px circle at 78% 84%, rgba(94, 200, 255, 0.15), transparent 66%),
+        radial-gradient(520px circle at 18% 90%, rgba(255, 196, 140, 0.14), transparent 62%);
+}
+
+[data-theme="dark"] .ly-aurora {
+    background:
+        radial-gradient(560px circle at 12% 10%, rgba(255, 143, 171, 0.13), transparent 62%),
+        radial-gradient(620px circle at 88% 6%, rgba(177, 140, 255, 0.14), transparent 64%),
+        radial-gradient(700px circle at 78% 84%, rgba(94, 200, 255, 0.12), transparent 66%),
+        radial-gradient(520px circle at 18% 90%, rgba(255, 196, 140, 0.10), transparent 62%);
+}
+
+/* 极光层要落在「body 底色之上、页面内容之下」。
+   #layout 提一层即可 —— z-index 不会改变固定定位的参照系，所以导航胶囊不受影响。 */
+#layout {
+    position: relative;
+    z-index: 1;
+}
+
+html.ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
+    /* 68% 白：文字对比还在，背后的色斑又能透出来 */
+    background-color: color-mix(in srgb, var(--ly-glass-fill) 68%, transparent);
+    /* ★ 刻意不上 backdrop-filter。
+       每张卡一层「模糊 + 位移」意味着每一帧都要重新采样它下面的整个背景，
+       首页 7 张卡 + 资料卡叠起来就是滚动掉帧的主因（实测桌面都会卡）。
+       极光色斑本身是 400-600px 的大块柔和渐变，透过来是清楚的也不难看 ——
+       用「半透明」换「零 GPU 采样」，观感损失很小、代价差一个数量级。 */
+}
+
+/* ★ 深色模式必须单独覆盖一次。
+   原因：--ly-glass-fill 只在 :root 里定义，深色模式没有重定义它，
+   于是拿到的还是浅色 #fbfcfe —— 直接用会出现「浅灰卡片 + 白字」读不了。
+   深色该用的是 --ly-surface（#1a2029）。
+
+   ★ 选择器也必须写成 html[data-theme="dark"].ly-glass-bg：
+   data-theme 就挂在 <html> 自己身上，
+   写成 [data-theme="dark"] html.xxx 等于要求「html 里再套一个 html」，永远不匹配。 */
+html[data-theme="dark"].ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
+    background-color: color-mix(in srgb, var(--ly-surface) 68%, transparent);
 }

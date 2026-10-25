@@ -2856,16 +2856,20 @@ html.ly-nav-liquid.ly-scrolling #menu {
     padding: 14px 12px;
     border-radius: 14px;
     border: 1px solid var(--ly-glass-stroke);
-    background-color: color-mix(in srgb, var(--ly-glass-fill) 76%, transparent);
+    background-color: color-mix(in srgb, var(--ly-glass-fill) 58%, transparent);
     background-image: var(--ly-glass-grain), var(--ly-glass-tint);
     background-blend-mode: overlay, normal;
+    
+    /* 和底部导航同一套配方：低模糊 + 位移折射 + 白描边。
+       正文页只有这一个玻璃元素，不像首页那样 8 层叠着，
+       所以这里开 backdrop-filter 是负担得起的。
+       ★ 之前为了省性能把它关了，结果目录看着比导航「平」一档 —— 观感不统一。 */
+    backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
+    -webkit-backdrop-filter: saturate(150%) blur(2px) url(#ly-nav-liquid);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        inset 0 -1px 0 rgba(159, 173, 194, 0.26),
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 10px 30px rgba(16, 24, 40, 0.10);
-    /* 不加 backdrop-filter：目录后面只有页面底色，模糊了也是一片平滑色，
-       等于白付一层每帧重采样。要玻璃感用半透明底色 + 颗粒就够了。 */
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+        0 10px 30px rgba(16, 24, 40, 0.12);
     font-size: 12.5px;
     line-height: 1.6;
     scrollbar-width: thin;
@@ -3047,4 +3051,21 @@ html.ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
    写成 [data-theme="dark"] html.xxx 等于要求「html 里再套一个 html」，永远不匹配。 */
 html[data-theme="dark"].ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
     background-color: color-mix(in srgb, var(--ly-surface) 68%, transparent);
+}
+
+/* ============================================================
+   手机端：导航移回顶部
+   ------------------------------------------------------------
+   主题原本就是 `#menu{position:fixed;top:0}`（顶部通栏），
+   后来在 custom.css 里被改成 `bottom:10px;top:auto`（悬浮胶囊）。
+   手机屏上底部胶囊挡内容、也贴着手势区，所以这里单独换回顶部。
+
+   为什么只换 top/bottom 就够：胶囊原来是 bottom 锚定所以「向上生长」，
+   换成 top 锚定后整块自然改成「向下生长」，菜单展开方向就对了。
+   ============================================================ */
+@media (max-width: 899px) {
+    #menu {
+        top: 10px;
+        bottom: auto;
+    }
 }

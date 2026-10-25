@@ -411,6 +411,48 @@
         );
     }
 
+    /* ---------- 首屏照片点开灯箱 ----------
+       主题的 preview 会给页面上每个 <img> 绑点击，但 #home-photo 是
+       `pointer-events: none`（它上面压着 #home-info，点哪都是「滚到文章列表」），
+       所以那张照片点不开 —— 程序化 .click() 能打开，说明监听一直是好的。
+
+       做法：在 #home-head 上用捕获阶段拦一次，坐标落在照片矩形内才接管，
+       然后回放一次 img.click() 复用主题原有的逻辑。
+       不走「提高照片层级」这条路：手机端照片在文字后面，提层级会把字盖住。
+
+       只在 ≥900px 生效：手机上照片几乎铺满首屏、文字叠在上面，
+       按坐标判断会把「点文字」也当成「点照片」。 */
+    function initHeroZoom() {
+        var head = document.getElementById("home-head");
+        var photo = document.getElementById("home-photo");
+        if (!head || !photo) return;
+
+        var desktop = window.matchMedia("(min-width: 900px)");
+
+        head.addEventListener(
+            "click",
+            function (event) {
+                if (!desktop.matches) return;
+                var rect = photo.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                if (event.clientX < rect.left || event.clientX > rect.right) return;
+                if (event.clientY < rect.top || event.clientY > rect.bottom) return;
+
+                event.stopPropagation();
+                event.preventDefault();
+
+                /* 这张图是装饰性的（alt="" + aria-hidden），alt 为空会让灯箱工具栏
+                   名字那栏空着。临时挂一个可读名称给主题的监听读，读完立刻还原，
+                   装饰语义不变。click() 是同步派发的，所以这样写是安全的。 */
+                var previousAlt = photo.getAttribute("alt");
+                photo.setAttribute("alt", "首屏照片");
+                photo.click();
+                photo.setAttribute("alt", previousAlt);
+            },
+            true
+        );
+    }
+
     function boot() {
         initSmoothScroll();
         initReveal();
@@ -418,6 +460,7 @@
         initNavLiquid();
         initToc();
         initPhotoBar();
+        initHeroZoom();
     }
 
     if (document.readyState === "loading") {

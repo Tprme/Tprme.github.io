@@ -130,7 +130,11 @@
        加上 only 避免它对已经深色的页面再做一次自动深色处理。 */
     color-scheme: dark;
     color-scheme: only dark;
-    --ly-bg: #0f1419;
+    /* 和星空底色保持一致。
+       原来是 #0f1419（偏蓝灰），改成星空那层的 #04060c 之后，
+       任何还在用 var(--ly-bg) 的地方（实测只有 #loading 加载遮罩）
+       就不会在加载瞬间先闪一下另一个色调再变星空。 */
+    --ly-bg: #04060c;
     --ly-surface: #1a2029;
     --ly-text: #e4e8ee;
     --ly-text-soft: #99a3b0;

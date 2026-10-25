@@ -3059,13 +3059,29 @@ html[data-theme="dark"].ly-glass-bg :is(#home-posts .post, #home-card #card-div)
    主题原本就是 `#menu{position:fixed;top:0}`（顶部通栏），
    后来在 custom.css 里被改成 `bottom:10px;top:auto`（悬浮胶囊）。
    手机屏上底部胶囊挡内容、也贴着手势区，所以这里单独换回顶部。
-
-   为什么只换 top/bottom 就够：胶囊原来是 bottom 锚定所以「向上生长」，
-   换成 top 锚定后整块自然改成「向下生长」，菜单展开方向就对了。
    ============================================================ */
 @media (max-width: 899px) {
     #menu {
         top: 10px;
         bottom: auto;
+    }
+
+    /* ★ 只换 top/bottom 还不够。
+       原布局用 `#menu #mobile-menu{flex-direction:column-reverse}`：
+       DOM 里标题在前、菜单项在后，反转后标题正好贴在底边 ——
+       这是为「底部锚定、向上生长」设计的。
+       搬到顶部之后这个反转就反了：标题跑到最下面，
+       于是「想收起菜单得把手指移到面板底部的 Tprme 那一行」。
+       这里改回正常顺序：标题在最上，菜单项往下展开。 */
+    #menu #mobile-menu {
+        flex-direction: column;
+    }
+
+    /* ★ 展开后的底色从 92% 降到 70%。
+       原注释说「展开时关模糊是为了性能」—— 那个理由成立，保持 backdrop-filter: none。
+       但底色 92% 跟不透明没区别，手机上点开就是一块白板。
+       只改透明度不涉及任何 GPU 采样，成本为零，透一点出来立刻有玻璃感。 */
+    #menu:has(#mobile-menu .items:not([style*="display: none"])) {
+        background: color-mix(in srgb, var(--ly-surface) 70%, transparent);
     }
 }

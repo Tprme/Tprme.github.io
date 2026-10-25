@@ -2439,3 +2439,58 @@ table:not(.hljs-ln) td:nth-child(odd) {
         display: none !important;
     }
 }
+
+/* ============================================================
+   动效增强：① 平滑滚动  ② 滚动进场  ⑤ 胶片颗粒
+   对应 source/js/motion.js。设计原则见那个文件顶部注释。
+   ============================================================ */
+
+/* --- Lenis 基础样式（取自 lenis/dist/lenis.css，只保留有必要的几条） --- */
+html.lenis, html.lenis body { height: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel] { overscroll-behavior: contain; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
+/* --- ② 滚动进场 ---
+   默认可见。只有 html 上出现 .ly-motion（JS 跑通后由 motion.js 添加），
+   元素才有隐藏态 —— 这是「没 JS 也不会白屏」的唯一保证。 */
+.ly-motion .ly-reveal {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    will-change: opacity, transform;
+}
+.ly-motion .ly-reveal.ly-in {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition:
+        opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 减弱动效：直接归零，不留任何过渡 */
+@media (prefers-reduced-motion: reduce) {
+    .ly-motion .ly-reveal,
+    .ly-motion .ly-reveal.ly-in {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        will-change: auto;
+    }
+}
+
+/* --- ⑤ 胶片颗粒 ---
+   一层固定的极淡噪点，盖在内容之上、加载层之下。
+   作用：去掉「纯色平面」的塑料感。数值刻意保守：opacity 4.5%、
+   180px 平铺 —— 凑近才看得见，退开就是一层质感。 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    background-repeat: repeat;
+}

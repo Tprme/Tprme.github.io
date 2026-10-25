@@ -204,6 +204,10 @@
     %>
     <script src="<%- asset_url("/js/lib/glass.js") %>"></script>
     <script src="<%- asset_url("/js/main.js") %>"></script>
+    <%# 动效增强：Lenis 必须排在 motion.js 前面（motion.js 里直接读 window.Lenis）。
+        两者都在普通 <script> 里同步加载，所以顺序由文档顺序保证，不需要 defer。 %>
+    <script src="<%- asset_url("/js/lib/lenis.min.js") %>"></script>
+    <script src="<%- asset_url("/js/motion.js") %>"></script>
     <%# 评论区（partial("comment")）已按反馈整体移除，原因与恢复步骤见 post.ejs %>
 </body>
 </html>

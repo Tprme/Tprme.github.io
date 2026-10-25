@@ -890,7 +890,11 @@ a {
 #mobile-menu .items.slide-leave-to {
     margin-top: 0;
     opacity: 0;
-    transform: translateY(16px);
+    /* ★ 方向要跟着锚定位置走。
+       原本是 translateY(16px)：菜单项从下方滑上来 —— 那是因为胶囊底部锚定、
+       整块向上生长。现在导航搬到顶部、面板向下生长，再从下方滑上来就跟
+       面板的展开方向打架了。改成 -16px，从上方滑下来，方向和生长一致。 */
+    transform: translateY(-16px);
 }
 
 /* 去掉移动端点击时浏览器默认给的那层蓝色高亮。

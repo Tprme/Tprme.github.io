@@ -411,23 +411,6 @@
         );
     }
 
-    /* ---------- C 实验：页面极光背景 ----------
-       为什么需要这一层：折射是「把背景弯折」，可你原来的页面背景是一整片
-       平滑渐变 —— 弯它等于没弯。这一层放的是中频（400-600px 尺度）的柔和色斑，
-       正好是玻璃能弯、又不会干扰阅读的频段。
-
-       ★ 和卡片半透明是配套的：只加背景不改半透明 = 白改；
-         只改半透明不加背景 = 透出一片灰。必须两个一起。
-       开关：<html> 上的 ly-glass-bg，由本函数注入成功后添加。 */
-    function initAurora() {
-        if (document.querySelector(".ly-aurora")) return;
-        var layer = document.createElement("div");
-        layer.className = "ly-aurora";
-        layer.setAttribute("aria-hidden", "true");
-        document.body.insertBefore(layer, document.body.firstChild);
-        document.documentElement.classList.add("ly-glass-bg");
-    }
-
     function boot() {
         initSmoothScroll();
         initReveal();
@@ -435,7 +418,6 @@
         initNavLiquid();
         initToc();
         initPhotoBar();
-        initAurora();
     }
 
     if (document.readyState === "loading") {

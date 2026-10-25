@@ -3013,66 +3013,18 @@ html[data-theme="dark"] .ly-toc__list a.is-current {
 }
 
 /* ============================================================
-   C 实验：极光背景 + 半透明卡片（让浅色模式也能看见液态玻璃）
+   【已回滚】极光背景 + 半透明卡片
    ------------------------------------------------------------
-   原理：折射 = 把背景弯折。原来的页面背景是一整片平滑渐变，弯它看不见。
-   这一层放的是 400-600px 尺度的柔和色斑 —— 中频细节，玻璃能弯、又不干扰阅读。
-
-   ★ 和「卡片半透明」必须成对出现：
-     只加背景不改半透明 → 白改；
-     只改半透明不加背景 → 透出一片灰。
-   ★ 只作用于首页卡片和资料卡，不含文章大卡：
-     文章卡能有 4000px 高，那面积的 backdrop 采样 + 位移开销太大。
+   曾经在这里加过一层 .ly-aurora（四团柔和彩色色斑）配合卡片 68% 半透明，
+   目的是让浅色模式也能看见液态玻璃的折射。
+   2026-10 回滚，原因：
+     1. 色斑是 400-600px 的柔和渐变，玻璃弯它弯不出形状 —— 折射依然看不见；
+     2. 真正能看见折射要背景有高频细节，而高频细节会把整站变花；
+     3. 卡片若要真折射就得开 backdrop-filter，8 张卡实测会让桌面都掉帧。
+   所以回到「纯白 / 纯黑背景 + 实心卡片」，液态玻璃只保留在控制层：
+   导航胶囊、悬浮目录、照片灯箱工具栏。
+   配套的 initAurora() 也已从 js/motion.js 移除。
    ============================================================ */
-
-.ly-aurora {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(560px circle at 12% 10%, rgba(255, 143, 171, 0.18), transparent 62%),
-        radial-gradient(620px circle at 88% 6%, rgba(177, 140, 255, 0.16), transparent 64%),
-        radial-gradient(700px circle at 78% 84%, rgba(94, 200, 255, 0.15), transparent 66%),
-        radial-gradient(520px circle at 18% 90%, rgba(255, 196, 140, 0.14), transparent 62%);
-}
-
-[data-theme="dark"] .ly-aurora {
-    background:
-        radial-gradient(560px circle at 12% 10%, rgba(255, 143, 171, 0.13), transparent 62%),
-        radial-gradient(620px circle at 88% 6%, rgba(177, 140, 255, 0.14), transparent 64%),
-        radial-gradient(700px circle at 78% 84%, rgba(94, 200, 255, 0.12), transparent 66%),
-        radial-gradient(520px circle at 18% 90%, rgba(255, 196, 140, 0.10), transparent 62%);
-}
-
-/* 极光层要落在「body 底色之上、页面内容之下」。
-   #layout 提一层即可 —— z-index 不会改变固定定位的参照系，所以导航胶囊不受影响。 */
-#layout {
-    position: relative;
-    z-index: 1;
-}
-
-html.ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
-    /* 68% 白：文字对比还在，背后的色斑又能透出来 */
-    background-color: color-mix(in srgb, var(--ly-glass-fill) 68%, transparent);
-    /* ★ 刻意不上 backdrop-filter。
-       每张卡一层「模糊 + 位移」意味着每一帧都要重新采样它下面的整个背景，
-       首页 7 张卡 + 资料卡叠起来就是滚动掉帧的主因（实测桌面都会卡）。
-       极光色斑本身是 400-600px 的大块柔和渐变，透过来是清楚的也不难看 ——
-       用「半透明」换「零 GPU 采样」，观感损失很小、代价差一个数量级。 */
-}
-
-/* ★ 深色模式必须单独覆盖一次。
-   原因：--ly-glass-fill 只在 :root 里定义，深色模式没有重定义它，
-   于是拿到的还是浅色 #fbfcfe —— 直接用会出现「浅灰卡片 + 白字」读不了。
-   深色该用的是 --ly-surface（#1a2029）。
-
-   ★ 选择器也必须写成 html[data-theme="dark"].ly-glass-bg：
-   data-theme 就挂在 <html> 自己身上，
-   写成 [data-theme="dark"] html.xxx 等于要求「html 里再套一个 html」，永远不匹配。 */
-html[data-theme="dark"].ly-glass-bg :is(#home-posts .post, #home-card #card-div) {
-    background-color: color-mix(in srgb, var(--ly-surface) 68%, transparent);
-}
 
 /* ============================================================
    手机端：导航移回顶部

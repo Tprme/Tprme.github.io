@@ -3058,3 +3058,35 @@ html[data-theme="dark"] .ly-toc__list a.is-current {
         background: color-mix(in srgb, var(--ly-surface) 70%, transparent);
     }
 }
+
+/* ============================================================
+   深色模式：全站星空背景
+   ------------------------------------------------------------
+   原来星空只画在 #home-head::after（首页首屏），其它页面只有 html 的
+   纯色底 var(--ly-bg) = #0f1419。这里把同一套星空铺到根元素上，
+   于是文章页、归档页、分类页全都变成夜空。
+
+   为什么放 html 而不是再插一层 div：
+   根元素的背景会传播到 canvas，天然「固定在视口、不随滚动移动」——
+   正好是夜空该有的感觉，而且不增加任何元素、不增加合成层。
+
+   底色用 #04060c 而不是 #0f1419：和首屏星空同色，
+   这样首屏到底下的文章列表不会出现一道色差。
+
+   星图本身沿用 #home-head::after 那六层（401/233 两档平铺周期错开，
+   避免整齐网格感）。这里不做「天光」渐变 —— 长页面上渲染成一条固定亮带会很怪。
+   ============================================================ */
+:root[data-theme="dark"] {
+    background-color: #04060c;
+    background-image:
+        radial-gradient(1.5px 1.5px at 11% 17%, rgba(255, 255, 255, 0.95), transparent 100%),
+        radial-gradient(1px 1px at 7% 54%, rgba(206, 226, 255, 0.85), transparent 100%),
+        radial-gradient(0.9px 0.9px at 16% 80%, rgba(255, 240, 214, 0.7), transparent 100%),
+        radial-gradient(1.2px 1.2px at 19% 31%, rgba(255, 255, 255, 0.8), transparent 100%),
+        radial-gradient(0.9px 0.9px at 5% 67%, rgba(226, 236, 255, 0.65), transparent 100%),
+        radial-gradient(1.1px 1.1px at 23% 7%, rgba(255, 255, 255, 0.75), transparent 100%);
+    background-repeat: repeat;
+    background-size:
+        401px 401px, 401px 401px, 401px 401px,
+        233px 233px, 233px 233px, 233px 233px;
+}

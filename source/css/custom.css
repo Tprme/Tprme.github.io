@@ -3143,3 +3143,33 @@ html[data-theme="dark"] .ly-toc__list a.is-current {
         cursor: url("/images/cursor-pointer.png") 3 1, pointer;
     }
 }
+
+/* ============================================================
+   加载阶段别让图片预览层露出来
+   ------------------------------------------------------------
+   #preview 的显隐完全靠 Vue 的 v-show。在 main.js 跑起来之前那一瞬间
+   v-show 还没生效，而这个元素在 CSS 里是 display:flex + 半透明白底 + blur(18px)，
+   于是整屏白闪一下，中间还挂着一个「放大的图片预览」的破图 ——
+   模板里的 <img id="preview-content"> 没有 src，浏览器就渲染 alt 文字。
+
+   修法：还没有 src 的预览层直接不显示。
+   点开图片时 Vue 会把 src 写进 <img>，:has 条件不再成立，层就正常出现。
+   :has 不被支持时整条规则被忽略 —— 回到原来的表现，不会更糟。
+   ============================================================ */
+#preview:not(:has(#preview-content[src])) {
+    display: none;
+}
+
+/* 同一个问题的另一半：遮罩层 #menu-curtain。
+   它的显隐也完全靠 v-show，CSS 里是 display:block + 半透明黑 + blur(3px)，
+   加载时会把整页压暗并模糊一下（截图能明显看出来）。
+
+   Vue 3 挂载时会给容器加 data-v-app 属性，用它判断「Vue 跑没跑」最精确：
+   还没挂载就藏起来；挂载后属性出现，这条规则自然失效，交回 v-show 管。
+
+   顺带把 #preview 也列进来 —— :has 那条规则判断的是「有没有 src」，
+   这条判断的是「Vue 挂没挂载」，两者互补，任一条生效都不会露出来。 */
+#layout:not([data-v-app]) #menu-curtain,
+#layout:not([data-v-app]) #preview {
+    display: none;
+}

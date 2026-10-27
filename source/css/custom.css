@@ -2570,10 +2570,39 @@ body::after {
     }
 }
 
-/* 页面切换本身就是一次淡入，再叠一个加载层动画只会互相打架。
-   只在支持 view-transition-name 的浏览器里关掉加载层。 */
-@supports (view-transition-name: none) {
-    #loading { display: none !important; }
+/* 加载层：默认不可见，只有「这次加载确实慢」才亮出来。
+   ------------------------------------------------------------
+   计时与开关在 layout.ejs 的 <head> 内联脚本里：
+   超过 300ms 才给 <html> 加 ly-loading-slow。
+
+   ★ 用 visibility + opacity，不用 display。
+   display 已经被 Vue 的 v-show 占着了 —— 这里早先写过
+   `#loading { display: none !important }`，那条 !important 会压掉
+   Vue 的内联 display，结果加载层永远出不来（看起来就像「加载动画没有了」）。
+   换成 visibility/opacity 就完全不碰 v-show 管的属性，两边互不干扰。
+
+   ★ 不再因为支持 View Transitions 就整个关掉：
+   慢加载时（比如网络差）还是应该给个反馈，而快加载根本不会触发这条规则。 */
+#loading {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 240ms ease,
+        /* 消失时让 visibility 延后到淡出结束，否则过渡会被打断 */ visibility 0s linear 240ms;
+}
+
+html.ly-loading-slow #loading {
+    opacity: 1;
+    visibility: visible;
+    transition:
+        opacity 240ms ease,
+        visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #loading {
+        transition: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -137,6 +137,56 @@
             window.__lyApplyColorScheme(dark);
         })();
     </script>
+    <%#
+      加载层「慢才显示」。
+      静态站正常情况下几百毫秒就渲染好了，加载层会出现一两帧就消失 ——
+      闪一下比完全不显示更烦，所以延迟 300ms：超过这个时间才认为这次是真慢，
+      这时才把加载层亮出来（CSS 见 custom.css 里 html.ly-loading-slow 那段）。
+
+      为什么这里兼容 performance.now()：计时从「导航开始」算起才有意义。
+      如果 HTML 本身就要 500ms 才到，脚本执行时已经超过阈值了，
+      这时候应该立刻显示，而不是再等 300ms。
+    %>
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var SHOW_AFTER = 300;
+            var CAP = 8000; /* 兜底：万一 load 一直不来，8 秒后收掉 */
+
+            var finished = false;
+            var timer = null;
+            function show() {
+                if (finished) return;
+                root.classList.add("ly-loading-slow");
+            }
+            /* ★ finish 里必须 clearTimeout。
+               否则会有这么一条竞争路径，实测真的会卡住：
+                 DOMContentLoaded 在 250ms 先到 → finish() 什么都不做（class 还没加）
+                 300ms 定时器随后触发 → 把 class 加回去 → 再没有任何东西会移除它
+               结果加载层永久盖在页面上。 */
+            function finish() {
+                if (finished) return;
+                finished = true;
+                clearTimeout(timer);
+                root.classList.remove("ly-loading-slow");
+            }
+
+            var elapsed =
+                window.performance && performance.now ? performance.now() : 0;
+            if (elapsed >= SHOW_AFTER) show();
+            else timer = setTimeout(show, SHOW_AFTER - elapsed);
+
+            /* 以「页面可用」为终止点，不等图片：
+               大图慢的时候不该拿一层遮罩把读者挡在外面。 */
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", finish, { once: true });
+            } else {
+                finish();
+            }
+            window.addEventListener("load", finish, { once: true });
+            setTimeout(finish, CAP);
+        })();
+    </script>
     <%# 移动端优化：
         theme-color 让手机浏览器的地址栏/状态栏跟随站点主色；
         format-detection 避免浏览器把页面里的数字误识别成电话号码并加上蓝色下划线 %>

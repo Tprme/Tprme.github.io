@@ -3202,3 +3202,35 @@ html[data-theme="dark"] .ly-toc__list a.is-current {
 #layout:not([data-v-app]) #preview {
     display: none;
 }
+
+/* ============================================================
+   分页第 2 页之后：隐藏首屏 hero
+   ------------------------------------------------------------
+   问题：#home-head 是 100vh，而它原来在每一页都渲染 ——
+   所以翻到第 2 页时，手机上一整屏还是首屏（导航 + 标题 + 照片），
+   文章列表被推到 y=864 之外，看起来就像「第二页没加载出来」。
+   桌面端看不出来，是因为桌面 hero 只有 58vh，下面直接露着文章。
+
+   为什么用 display:none 而不是干脆不渲染：
+   themes/loststar/source/js/lib/home.js 的 mounted 里有一句
+   `this.$refs.homeBackground.dataset.images` —— 元素不存在就是
+   TypeError，会把整个 Vue 的 mounted 打断。
+   所以保留 DOM，只做视觉隐藏，ref 照常拿得到。
+
+   紧跟着的 #home-posts-wrap 补上顶部间距，否则第一张卡会被
+   固定定位的导航胶囊压住（手机上导航在顶部，占 10+52px）。
+   ============================================================ */
+#home-head.is-paged {
+    display: none;
+}
+
+#home-head.is-paged + #home-posts-wrap {
+    padding-top: 84px;
+}
+
+@media (min-width: 900px) {
+    /* 桌面端导航在底部，不需要让 84px，留点呼吸就够 */
+    #home-head.is-paged + #home-posts-wrap {
+        padding-top: 48px;
+    }
+}

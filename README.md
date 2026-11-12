@@ -12,7 +12,8 @@
 推送到 GitHub 之后，GitHub Actions 会自动把 Markdown 转成网页并发布到
 GitHub Pages。所以我只需要写 `.md` 文件，不用管网页是怎么生成的。
 
-主题用的是 [LostStar](https://github.com/thatnghiep-dev/hexo-theme-loststar)。
+现在用的是本站独立主题 `themes/tprme/`。顶部导航带有悬停切换的下拉面板。
+文章仍然用 Markdown 写，不需要 React。旧的 LostStar 主题留在仓库里备查。
 
 ## 怎么发一篇新文章
 
@@ -65,9 +66,11 @@ tags:
 ```
 source/_posts/       文章（Markdown）
 source/about/        关于页
-source/css/custom.css  自定义样式（覆盖主题默认样式）
+themes/tprme/source/css/site.css  当前主题样式
+source/css/nav-preview.css       导航下拉面板样式
 _config.yml          站点配置（标题、网址、分类标签等）
-themes/loststar/     主题
+themes/tprme/        当前主题（模板和交互说明见主题 README）
+themes/loststar/     旧主题，留作备份
 .github/workflows/   自动部署脚本
 ```
 

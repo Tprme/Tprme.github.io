@@ -54,14 +54,14 @@ relative_link: false
 future: true
 syntax_highlighter: highlight.js
 
-# LostStar 主题用 highlight.js 客户端高亮，关掉 Hexo 自带的，避免两套样式打架
+# 构建时完成代码高亮，读者无需下载客户端高亮库。
 highlight:
-  enable: false
+  enable: true
   line_number: false
   auto_detect: false
   tab_replace: ''
   wrap: true
-  hljs: false
+  hljs: true
 prismjs:
   enable: false
   preprocess: false
@@ -99,7 +99,7 @@ exclude:
 ignore:
 
 # Extensions
-theme: loststar
+theme: tprme
 
 # 归档按年份/月份分组会显得很乱，关掉（LostStar 主题建议）
 archive_generator:
@@ -114,3 +114,8 @@ archive_generator:
 ## 所以这里不配置 hexo-deployer-git，hexo d 不是必需的。
 deploy:
   type: ''
+
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20

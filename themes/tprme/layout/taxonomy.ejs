@@ -1,0 +1,11 @@
+<% const categoryPage = is_category() || page.type === 'categories';
+   const collection = (categoryPage ? site.categories : site.tags).toArray().sort((a,b) => b.length-a.length || a.name.localeCompare(b.name, 'zh'));
+   const selected = categoryPage ? page.category : page.tag;
+   const label = categoryPage ? '分类' : '标签';
+%>
+<div class="shell collection-page">
+    <header class="page-heading"><div class="eyebrow">按主题翻阅</div><h1><%= selected || label %><span class="heading-count"><%= selected ? collection.find(item => item.name === selected).length : collection.length %></span></h1><p><%= categoryPage ? '学习里踩过的坑，生活里想写的事。' : '从一个关键词开始。' %></p></header>
+    <nav class="taxonomy-cloud" aria-label="<%= label %>"><a href="<%- url_for(categoryPage ? '/categories/' : '/tags/') %>"<% if (!selected) { %> aria-current="page"<% } %>>全部</a><% collection.forEach(item => { %><a href="<%- url_for(item.path) %>"<% if (selected === item.name) { %> aria-current="page"<% } %>><%= item.name %><small><%= item.length %></small></a><% }); %></nav>
+    <% if (selected) { %><section class="taxonomy-posts" aria-label="<%= selected %>的文章"><h2 class="visually-hidden">文章列表</h2><% page.posts.forEach(post => { %><%- partial('_partial/post-card', {post}) %><% }); %><%- partial('_partial/pagination') %></section>
+    <% } else { %><div class="taxonomy-directory"><% collection.forEach(item => { %><a href="<%- url_for(item.path) %>"><span><%= item.name %></span><small><%= item.length %> 篇文章</small><span aria-hidden="true">↗</span></a><% }); %></div><% } %>
+</div>

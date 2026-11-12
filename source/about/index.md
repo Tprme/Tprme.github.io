@@ -28,7 +28,7 @@ Tprme，大一。C 语言基础学完了，现在在学 Python 和 Web 安全。
 
 ## 关于本站
 
-用 [Hexo](https://hexo.io) 搭建，主题是 [LostStar](https://github.com/thatnghiep-dev/hexo-theme-loststar)，
+用 [Hexo](https://hexo.io) 搭建，主题是为这个博客单独做的，
 托管在 GitHub Pages 上，push 后由 GitHub Actions 自动部署。
 
 如果你发现文章里有错误，或想交流学习内容，欢迎通过 [GitHub 联系我](https://github.com/Tprme)。

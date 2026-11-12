@@ -1,0 +1,16 @@
+<% const isArticle = is_post(); const headings = !page.secret ? toc(page.content, {class:'toc', list_number:false}) : ''; %>
+<div class="reading-progress" aria-hidden="true"><span></span></div>
+<div class="shell article-layout<%= page.nofollow ? ' not-found-page' : '' %>">
+    <article class="article">
+        <header class="article-heading"><a class="back-link" href="<%- url_for(isArticle ? '/archives/' : '/') %>">← <%= isArticle ? '全部文章' : '首页' %></a>
+            <% if (isArticle) { %><div class="post-meta"><time datetime="<%= date(page.date, 'YYYY-MM-DD') %>"><%= date(page.date, 'YYYY.MM.DD') %></time><span class="meta-separator">/</span><% page.categories.forEach(category => { %><a href="<%- url_for(category.path) %>"><%= category.name %></a><% }); %><span class="meta-separator">/</span><span>约 <%= Math.max(1, Math.ceil(strip_html(page.content).length/450)) %> 分钟</span></div><% } %>
+            <h1><%= page.title %></h1>
+            <% if (isArticle) { %><div class="post-tags"><% page.tags.forEach(tag => { %><a href="<%- url_for(tag.path) %>"># <%= tag.name %></a><% }); %></div><% } %>
+        </header>
+        <% if (page.secret) { throw new Error('加密文章需要先接入解密组件，停止构建以免公开正文。'); } %>
+        <% if (headings && !page.nofollow) { %><details class="mobile-toc"><summary>文章目录</summary><nav aria-label="文章目录"><%- headings %></nav></details><% } %>
+        <div class="prose"><%- page.content %></div>
+        <% if (isArticle) { %><footer class="article-bottom"><span>写于 <%= date(page.date, 'YYYY 年 M 月 D 日') %></span><a href="#main">回到顶部 ↑</a></footer><nav class="post-neighbors" aria-label="相邻文章"><% if (page.prev) { %><a href="<%- url_for(page.prev.path) %>"><small>← 较新的文章</small><span><%= page.prev.title %></span></a><% } %><% if (page.next) { %><a href="<%- url_for(page.next.path) %>"><small>较早的文章 →</small><span><%= page.next.title %></span></a><% } %></nav><% } %>
+    </article>
+    <% if (headings && !page.nofollow) { %><aside class="desktop-toc"><nav aria-label="文章目录"><span class="eyebrow">本页目录</span><%- headings %></nav><a class="toc-top" href="#main">回到顶部 ↑</a></aside><% } %>
+</div>

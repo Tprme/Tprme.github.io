@@ -1,0 +1,57 @@
+<%
+    const articlePage = is_post();
+    let view = 'post';
+    if (is_home()) view = 'index';
+    if (is_archive()) view = 'archives';
+    if (is_category() || is_tag() || page.type === 'categories' || page.type === 'tags') view = 'taxonomy';
+    let heading = page.title || config.title;
+    if (is_archive()) heading = '归档';
+    if (is_category()) heading = '分类：' + page.category;
+    if (is_tag()) heading = '标签：' + page.tag;
+    const title = is_home() ? config.title + ' · ' + config.subtitle : heading + ' | ' + config.title;
+    const description = page.secret ? '这是一篇加密文章。' : strip_html(page.description || page.excerpt || config.description).replace(/\s+/g, ' ').slice(0, 180);
+    const shareImage = page.cover || '/images/share-default.jpg';
+%>
+<!doctype html>
+<html lang="<%= config.language %>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#f8f9fb">
+    <meta name="author" content="<%= config.author %>">
+    <meta name="description" content="<%= description %>">
+    <% if (page.nofollow) { %><meta name="robots" content="noindex, follow"><% } %>
+    <title><%= title %></title>
+    <link rel="canonical" href="<%- full_url_for(page.path || path) %>">
+    <%- open_graph({ title: heading, description, image: full_url_for(shareImage), twitter_card: ogCardType(shareImage) }) %>
+    <link rel="icon" href="<%- url_for('/favicon.ico') %>" sizes="any">
+    <link rel="icon" type="image/png" href="<%- url_for('/images/favicon-64.png') %>">
+    <link rel="apple-touch-icon" href="<%- url_for('/apple-touch-icon.png') %>">
+    <link rel="alternate" type="application/atom+xml" title="<%= config.title %>" href="<%- url_for('/atom.xml') %>">
+    <script>
+    (function () {
+        var theme;
+        try { theme = localStorage.getItem('ly-theme'); } catch (_) {}
+        if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#101216' : '#f8f9fb';
+    })();
+    </script>
+    <link rel="stylesheet" href="<%- asset_url('/css/site.css') %>">
+    <link rel="stylesheet" href="<%- asset_url('/css/nav-preview.css') %>">
+</head>
+<body data-view="<%= view %>">
+    <a class="skip-link" href="#main">跳到正文</a>
+    <%- partial('_partial/header') %>
+    <main id="main" tabindex="-1"><%- partial(view) %></main>
+    <%- partial('_partial/footer') %>
+    <%- partial('_partial/nav-preview') %>
+    <dialog id="photo-viewer" aria-label="图片预览">
+        <div class="photo-toolbar"><span id="photo-caption"></span><a id="photo-original" target="_blank" rel="noopener">查看原图 ↗</a><button type="button" id="photo-close" aria-label="关闭图片预览">关闭 ×</button></div>
+        <img id="photo-full" alt="">
+    </dialog>
+    <script src="<%- asset_url('/js/site.js') %>" defer></script>
+    <script src="<%- asset_url('/js/nav-preview.js') %>" defer></script>
+</body>
+</html>

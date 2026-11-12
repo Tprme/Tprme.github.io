@@ -1,0 +1,33 @@
+# Tprme 博客主题
+
+Hexo 的独立 EJS 主题。用原生 CSS 和 JavaScript 实现，不依赖 Vue、React 或第三方 CDN。
+
+## 文件
+
+- `layout/`：首页、文章页、归档、分类、标签与公共模板。
+- `source/css/site.css`：深浅配色、排版、响应式布局。
+- `source/js/site.js`：主题切换、归档搜索、图片预览、代码复制、阅读进度与目录。
+- 站点 `source/js/nav-preview.js` 和 `source/css/nav-preview.css`：共用的导航面板；根据导航位置选择向上或向下展开。
+- `layout/_partial/nav-preview.ejs`：构建时从文章、分类和标签生成快捷入口。
+
+## 导航交互
+
+悬停立即切换，面板位置和宽高在 260ms 内过渡。离开后保留 160ms，方便跨过面板间隙。内容进入动画为 240ms。
+
+主链接仍可直接点击。键盘左右切换主链接，上下或 Tab 进入面板，Escape 关闭并还原焦点。手机用原生 `details` 菜单。系统开启减弱动态效果时关闭过渡。
+
+动画参考了 x.ai 导航的交互思路；实现独立编写，没有复制其代码或素材，也不需要付费组件。
+
+## 发布检查
+
+```sh
+npm run clean
+npm run build
+npm run check
+```
+
+正文和旧链接保持不变，首页分页从第 2 页起不再显示 hero。代码在构建时高亮；图片完整显示，点击可查看原图。搜索在本地筛选标题、标签和分类，不发送请求。
+
+目前所有文章都是公开文章。以后若加入 `secret` 加密文章，主题会中止构建，避免正文意外公开；需要先接入解密功能。
+
+旧主题和旧样式没有删除。需要恢复旧版时，将根配置的 `theme` 改回 `loststar`，并将 `highlight.enable` 改回 `false`，随后 clean / build / check。

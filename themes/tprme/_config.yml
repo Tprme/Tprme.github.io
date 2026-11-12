@@ -1,0 +1,13 @@
+hero: /images/hero.webp
+avatar: /images/me.webp
+github: https://github.com/Tprme
+menu:
+  首页: /
+  关于: /about/
+  归档: /archives/
+  分类: /categories/
+  标签: /tags/
+card:
+  iconLinks:
+    GitHub:
+      link: https://github.com/Tprme

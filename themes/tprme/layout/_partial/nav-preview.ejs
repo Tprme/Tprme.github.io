@@ -3,7 +3,7 @@
    const navCategories = site.categories.toArray().sort((a, b) => b.length - a.length);
    const navTags = site.tags.toArray().sort((a, b) => b.length - a.length || a.name.localeCompare(b.name, 'zh')).slice(0, 10);
 %>
-<div id="nav-preview" aria-label="导航快捷入口" hidden>
+<nav id="nav-preview" aria-label="导航快捷入口" hidden>
     <section class="nav-preview-panel" data-nav-panel="首页" data-width="400" id="nav-preview-home" aria-label="最近更新" hidden inert>
         <div class="nav-preview-heading">最近更新</div>
         <% navPosts.slice(0, 3).forEach(post => { %>
@@ -43,4 +43,4 @@
         </div>
         <a class="nav-preview-footer" href="<%- url_for('/tags/') %>">全部标签 <span aria-hidden="true">↗</span></a>
     </section>
-</div>
+</nav>

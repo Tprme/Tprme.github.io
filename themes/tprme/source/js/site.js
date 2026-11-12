@@ -39,7 +39,7 @@
     var search = document.getElementById('archive-search');
     if (search) {
         var rows = Array.from(document.querySelectorAll('.archive-row'));
-        search.addEventListener('input', function () {
+        function filterArchive() {
             var words = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
             var count = 0;
             rows.forEach(function (row) {
@@ -51,8 +51,35 @@
             });
             document.getElementById('search-count').textContent = count + ' 篇文章';
             document.getElementById('search-empty').hidden = count > 0;
+        }
+        search.addEventListener('input', filterArchive);
+        function followArchiveAnchor(hash, scroll) {
+            if (hash === '#search') {
+                search.focus({ preventScroll: true });
+                if (scroll) document.getElementById('search').scrollIntoView({ block: 'start' });
+            } else if (/^#month-\d{4}-\d{2}$/.test(hash)) {
+                var month = document.getElementById(hash.slice(1));
+                if (!month) return;
+                search.value = '';
+                filterArchive();
+                if (scroll) month.scrollIntoView({ block: 'start' });
+            }
+        }
+        // Same-document navigation does not reload the search state. Handle
+        // clicks as well as hashchange, including a repeated click on one month.
+        document.addEventListener('click', function (event) {
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            var link = event.target.closest('a[href]');
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+            var url = new URL(link.href, location.href);
+            if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search) return;
+            if (url.hash !== '#search' && !/^#month-\d{4}-\d{2}$/.test(url.hash)) return;
+            event.preventDefault();
+            if (location.hash !== url.hash) history.pushState(null, '', url.hash);
+            followArchiveAnchor(url.hash, true);
         });
-        if (location.hash === '#search') search.focus({ preventScroll: true });
+        window.addEventListener('hashchange', function () { followArchiveAnchor(location.hash, true); });
+        followArchiveAnchor(location.hash, false);
     }
 
     var viewer = document.getElementById('photo-viewer');
@@ -89,13 +116,16 @@
     viewer.addEventListener('click', function (event) { if (event.target === viewer) viewer.close(); });
     viewer.addEventListener('close', function () { document.body.style.overflow = previousOverflow; });
 
-    document.querySelectorAll('.prose pre').forEach(function (pre) {
+    document.querySelectorAll('.prose pre').forEach(function (pre, index) {
         var wrapper = document.createElement('div');
         wrapper.className = 'code-wrap';
         var block = pre.closest('figure.highlight') || pre;
         if (block.parentElement.classList.contains('code-wrap')) return;
         block.before(wrapper);
         wrapper.appendChild(block);
+        block.tabIndex = 0;
+        block.setAttribute('role', 'region');
+        block.setAttribute('aria-label', '代码块 ' + (index + 1) + '，可横向滚动');
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'code-copy';
@@ -114,13 +144,13 @@
         });
         wrapper.appendChild(button);
     });
-    document.querySelectorAll('.prose table').forEach(function (table) {
+    document.querySelectorAll('.prose table').forEach(function (table, index) {
         if (table.closest('figure.highlight')) return;
         var wrapper = document.createElement('div');
         wrapper.className = 'table-scroll';
         wrapper.tabIndex = 0;
         wrapper.setAttribute('role', 'region');
-        wrapper.setAttribute('aria-label', '表格，可横向滚动');
+        wrapper.setAttribute('aria-label', '表格 ' + (index + 1) + '，可横向滚动');
         table.before(wrapper);
         wrapper.appendChild(table);
     });
@@ -133,9 +163,11 @@
         var frame = 0;
         function updateReading() {
             frame = 0;
-            var top = prose.getBoundingClientRect().top + window.scrollY;
-            var distance = Math.max(1, prose.offsetHeight - window.innerHeight + 160);
-            progress.style.transform = 'scaleX(' + Math.max(0, Math.min(1, (window.scrollY - top + 160) / distance)) + ')';
+            if (progress) {
+                var top = prose.getBoundingClientRect().top + window.scrollY;
+                var distance = Math.max(1, prose.offsetHeight - window.innerHeight + 160);
+                progress.style.transform = 'scaleX(' + Math.max(0, Math.min(1, (window.scrollY - top + 160) / distance)) + ')';
+            }
             var active = heads[0];
             heads.forEach(function (head) { if (head.getBoundingClientRect().top <= 180) active = head; });
             links.forEach(function (link) {

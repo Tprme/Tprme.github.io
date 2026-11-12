@@ -55,6 +55,15 @@ for (const file of htmlFiles) {
         console.error('Expected exactly one h1: ' + path.relative(publicDir, file));
         process.exit(1);
     }
+    let headingLevel = 0;
+    for (const match of html.matchAll(/<h([1-6])(?:\s|>)/gi)) {
+        const nextLevel = Number(match[1]);
+        if (nextLevel > headingLevel + 1) {
+            console.error('Skipped heading level: ' + path.relative(publicDir, file) + ' h' + headingLevel + ' -> h' + nextLevel);
+            process.exit(1);
+        }
+        headingLevel = nextLevel;
+    }
     if (html.includes('&lt;%#') || html.includes('<%#')) {
         console.error('Template comment leaked into page: ' + path.relative(publicDir, file));
         process.exit(1);

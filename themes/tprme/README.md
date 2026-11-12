@@ -30,4 +30,4 @@ npm run check
 
 目前所有文章都是公开文章。以后若加入 `secret` 加密文章，主题会中止构建，避免正文意外公开；需要先接入解密功能。
 
-旧主题和旧样式没有删除。需要恢复旧版时，将根配置的 `theme` 改回 `loststar`，并将 `highlight.enable` 改回 `false`，随后 clean / build / check。
+旧主题和旧样式没有删除。完整恢复旧版应回退主题改版及后续相关提交。仅切换 `theme` 和 `highlight.enable` 不够：当前 CI 检查还包含新主题的文件要求，也需要同步恢复。

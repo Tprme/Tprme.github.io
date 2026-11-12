@@ -109,7 +109,7 @@
         });
     });
 
-    // The panel is outside Vue's mount and the navigation's backdrop-filter.
+    // The panel is outside the navigation's backdrop-filter.
     // A short exit delay bridges the 12px gap, allowing diagonal mouse travel.
     nav.addEventListener('pointerenter', cancelClose);
     nav.addEventListener('pointerleave', scheduleClose);
@@ -127,7 +127,7 @@
             active.focus();
         } else if (!event.shiftKey && event.target === links[links.length - 1]) {
             event.preventDefault();
-                var next = active.nextElementSibling || document.getElementById('theme-toggle');
+            var next = active.nextElementSibling || document.querySelector('.archive-shortcut') || document.getElementById('theme-toggle');
             close(false);
             if (next) next.focus();
         }
@@ -140,6 +140,9 @@
     });
     document.addEventListener('pointerdown', function (event) {
         if (!nav.contains(event.target) && !viewport.contains(event.target)) close(false);
+    });
+    viewport.addEventListener('click', function (event) {
+        if (event.target.closest('a')) close(false);
     });
     window.addEventListener('resize', function () { if (desktop.matches) position(); else close(false); });
     window.addEventListener('blur', function () { close(false); });

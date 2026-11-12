@@ -1,6 +1,7 @@
+<% const cardHeading = is_home() && page.current > 1 ? 'h2' : 'h3'; %>
 <article class="post-card">
     <div class="post-meta"><time datetime="<%= date(post.date, 'YYYY-MM-DD') %>"><%= date(post.date, 'YYYY.MM.DD') %></time><span class="meta-separator">/</span><% post.categories.forEach(category => { %><a href="<%- url_for(category.path) %>"><%= category.name %></a><% }); %></div>
-    <h3><a href="<%- url_for(post.path) %>"><%= post.title %><span class="post-arrow" aria-hidden="true">↗</span></a></h3>
+    <<%= cardHeading %>><a href="<%- url_for(post.path) %>"><%= post.title %><span class="post-arrow" aria-hidden="true">↗</span></a></<%= cardHeading %>>
     <p class="post-excerpt"><%= post.secret ? '这是一篇加密文章。' : truncate(strip_html(post.description || post.excerpt || post.content).replace(/\s+/g, ' ').trim(), {length: 130, omission: '…'}) %></p>
     <div class="post-tags"><% post.tags.toArray().slice(0, 4).forEach(tag => { %><a href="<%- url_for(tag.path) %>"># <%= tag.name %></a><% }); %></div>
 </article>

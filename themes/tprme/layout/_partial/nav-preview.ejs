@@ -4,38 +4,19 @@
    const navTags = site.tags.toArray().sort((a, b) => b.length - a.length || a.name.localeCompare(b.name, 'zh')).slice(0, 10);
 %>
 <nav id="nav-preview" aria-label="导航快捷入口" hidden>
-    <section class="nav-preview-panel" data-nav-panel="首页" data-width="400" id="nav-preview-home" aria-label="最近更新" hidden inert>
-        <div class="nav-preview-heading">最近更新</div>
-        <% navPosts.slice(0, 3).forEach(post => { %>
-        <a class="nav-preview-row" href="<%- url_for(post.path) %>">
-            <span><%= post.title %></span><small><%= date(post.date, 'MM / DD') %></small>
-        </a>
-        <% }); %>
-        <a class="nav-preview-footer" href="<%- url_for('/') %>">回到首页 <span aria-hidden="true">↗</span></a>
-    </section>
-    <section class="nav-preview-panel" data-nav-panel="关于" data-width="280" id="nav-preview-about" aria-label="关于" hidden inert>
-        <div class="nav-preview-heading"><%= config.title %></div>
-        <a class="nav-preview-row" href="<%- url_for('/about/') %>"><span>关于我</span><span aria-hidden="true">↗</span></a>
-        <% if (theme.card && theme.card.iconLinks && theme.card.iconLinks.GitHub) { %>
-        <a class="nav-preview-row" href="<%= theme.card.iconLinks.GitHub.link %>"><span>GitHub</span><span aria-hidden="true">↗</span></a>
-        <% } %>
-    </section>
     <section class="nav-preview-panel" data-nav-panel="归档" data-width="300" id="nav-preview-archives" aria-label="按月归档" hidden inert>
-        <div class="nav-preview-heading">按月翻阅</div>
         <% navMonths.forEach(month => { %>
         <a class="nav-preview-row" href="<%- url_for('/archives/') %>#month-<%= month.replace('/', '-') %>"><span><%= month.replace('/', ' / ') %></span><small><%= navPosts.filter(post => date(post.date, 'YYYY/MM') === month).length %> 篇</small></a>
         <% }); %>
         <a class="nav-preview-footer" href="<%- url_for('/archives/') %>">全部归档 <span aria-hidden="true">↗</span></a>
     </section>
     <section class="nav-preview-panel" data-nav-panel="分类" data-width="280" id="nav-preview-categories" aria-label="文章分类" hidden inert>
-        <div class="nav-preview-heading">文章分类</div>
         <% navCategories.forEach(category => { %>
         <a class="nav-preview-row" href="<%- url_for(category.path) %>"><span><%= category.name %></span><small><%= category.length %> 篇</small></a>
         <% }); %>
         <a class="nav-preview-footer" href="<%- url_for('/categories/') %>">全部分类 <span aria-hidden="true">↗</span></a>
     </section>
     <section class="nav-preview-panel" data-nav-panel="标签" data-width="360" id="nav-preview-tags" aria-label="常用标签" hidden inert>
-        <div class="nav-preview-heading">常用标签</div>
         <div class="nav-preview-tags">
             <% navTags.forEach(tag => { %>
             <a href="<%- url_for(tag.path) %>"><%= tag.name %><small><%= tag.length %></small></a>

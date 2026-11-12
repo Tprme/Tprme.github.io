@@ -8,6 +8,7 @@
     var desktop = window.matchMedia('(min-width: 900px)');
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     var triggers = Array.from(nav.querySelectorAll('[data-nav-preview]'));
+    var navLinks = Array.from(nav.querySelectorAll('a'));
     var panels = Array.from(viewport.querySelectorAll('[data-nav-panel]'));
     var active = null;
     var current = null;
@@ -101,11 +102,14 @@
                 open(trigger);
                 if (current) { event.preventDefault(); current.querySelector('a').focus(); }
             }
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                event.preventDefault();
-                var delta = event.key === 'ArrowRight' ? 1 : -1;
-                triggers[(triggers.indexOf(trigger) + delta + triggers.length) % triggers.length].focus();
-            }
+        });
+    });
+    navLinks.forEach(function (link, index) {
+        link.addEventListener('keydown', function (event) {
+            if (!desktop.matches || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+            event.preventDefault();
+            var delta = event.key === 'ArrowRight' ? 1 : -1;
+            navLinks[(index + delta + navLinks.length) % navLinks.length].focus();
         });
     });
 

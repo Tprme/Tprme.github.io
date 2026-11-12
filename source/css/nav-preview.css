@@ -35,17 +35,10 @@
     left: 0;
     bottom: 0;
     box-sizing: border-box;
-    padding: 20px 14px 12px;
+    padding: 12px 14px;
     max-height: calc(100dvh - 100px);
     overflow-y: auto;
     overscroll-behavior: contain;
-}
-.nav-preview-heading {
-    padding: 0 12px 12px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ly-text-muted, var(--ly-text));
-    letter-spacing: .06em;
 }
 #nav-preview a {
     color: var(--ly-text);

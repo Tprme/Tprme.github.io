@@ -107,7 +107,6 @@
         if (!viewer.showModal) { window.open(src, '_blank', 'noopener'); return; }
         full.src = src;
         full.alt = alt;
-        document.getElementById('photo-caption').textContent = alt;
         document.getElementById('photo-original').href = src;
         previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';

@@ -1,6 +1,6 @@
 <% const allPosts = site.posts.toArray().sort((a,b) => b.date-a.date); const months = [...new Set(allPosts.map(post => date(post.date, 'YYYY-MM')))]; %>
 <div class="shell collection-page">
-    <header class="page-heading"><div class="eyebrow">全部文章</div><h1>归档<span class="heading-count"><%= allPosts.length %></span></h1><p>按时间，翻翻以前写的东西。</p></header>
+    <header class="page-heading"><h1>归档<span class="heading-count"><%= allPosts.length %></span></h1></header>
     <div class="archive-tools" id="search"><label for="archive-search">搜索文章</label><input id="archive-search" type="search" placeholder="标题、关键词或标签…" autocomplete="off"><span id="search-count" role="status" aria-live="polite"><%= allPosts.length %> 篇文章</span></div>
     <div class="archive-list"><% months.forEach(month => { %><section class="archive-month" id="month-<%= month %>"><h2><%= month.replace('-', ' / ') %></h2><div><% allPosts.filter(post => date(post.date, 'YYYY-MM') === month).forEach(post => { %><article class="archive-row" data-search="<%= (post.title + ' ' + post.tags.map(tag => tag.name).join(' ') + ' ' + post.categories.map(category => category.name).join(' ')).toLowerCase() %>"><time datetime="<%= date(post.date, 'YYYY-MM-DD') %>"><%= date(post.date, 'MM.DD') %></time><a href="<%- url_for(post.path) %>"><%= post.title %></a><span aria-hidden="true">↗</span></article><% }); %></div></section><% }); %></div>
     <p id="search-empty" hidden>没有找到对应的文章，换个关键词试试。</p>

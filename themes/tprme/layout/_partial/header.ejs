@@ -4,8 +4,9 @@
         <nav id="desktop-menu" aria-label="主导航">
             <% Object.entries(theme.menu).forEach(([label, href]) => {
                 const selected = href === '/' ? is_home() : ('/' + (page.path || '')).startsWith(href.replace(/\/$/, ''));
+                const hasPreview = ['/archives/', '/categories/', '/tags/'].includes(href);
             %>
-            <a href="<%- url_for(href) %>" data-nav-preview="<%= label %>"<% if (selected) { %> aria-current="page"<% } %>><%= label %><svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="m2 4 3 3 3-3" stroke="currentColor" stroke-width="1.2"/></svg></a>
+            <a href="<%- url_for(href) %>"<% if (hasPreview) { %> data-nav-preview="<%= label %>"<% } %><% if (selected) { %> aria-current="page"<% } %>><%= label %><% if (hasPreview) { %><svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="m2 4 3 3 3-3" stroke="currentColor" stroke-width="1.2"/></svg><% } %></a>
             <% }); %>
         </nav>
         <div class="header-tools">

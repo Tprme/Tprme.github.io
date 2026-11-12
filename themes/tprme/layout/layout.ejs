@@ -49,7 +49,7 @@
     <%- partial('_partial/footer') %>
     <%- partial('_partial/nav-preview') %>
     <dialog id="photo-viewer" aria-label="图片预览">
-        <div class="photo-toolbar"><span id="photo-caption"></span><a id="photo-original" target="_blank" rel="noopener">查看原图 ↗</a><button type="button" id="photo-close" aria-label="关闭图片预览">关闭 ×</button></div>
+        <div class="photo-toolbar"><a id="photo-original" target="_blank" rel="noopener">查看原图 ↗</a><button type="button" id="photo-close" aria-label="关闭图片预览">关闭 ×</button></div>
         <img id="photo-full" alt="">
     </dialog>
     <script src="<%- asset_url('/js/site.js') %>" defer></script>

@@ -1,4 +1,4 @@
-# Tprme 博客主题
+# actear 博客主题
 
 Hexo 的独立 EJS 主题。用原生 CSS 和 JavaScript 实现，不依赖 Vue、React 或第三方 CDN。
 

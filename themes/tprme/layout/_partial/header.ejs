@@ -1,6 +1,6 @@
 <header id="menu" class="site-header">
     <div class="header-inner">
-        <a class="brand" href="<%- url_for('/') %>" aria-label="<%= config.title %> 首页"><span class="brand-mark" aria-hidden="true">t.</span><span class="brand-label"><span><%= config.title %></span><span class="brand-home">首页</span></span></a>
+        <a class="brand" href="<%- url_for('/') %>" aria-label="<%= config.title %> 首页"><svg class="brand-mark" width="32" height="32" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="<%- asset_url('/images/actear-mark.svg') %>#actear-glyph"/></svg><span class="brand-label"><span><%= config.title %></span><span class="brand-home">首页</span></span></a>
         <nav id="desktop-menu" aria-label="主导航">
             <% Object.entries(theme.menu).forEach(([label, href]) => {
                 const selected = href === '/' ? is_home() : ('/' + (page.path || '')).startsWith(href.replace(/\/$/, ''));

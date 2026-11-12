@@ -11,7 +11,7 @@
     if (is_tag()) heading = '标签：' + page.tag;
     const title = is_home() ? config.title + ' · ' + config.subtitle : heading + ' | ' + config.title;
     const description = page.secret ? '这是一篇加密文章。' : strip_html(page.description || page.excerpt || config.description).replace(/\s+/g, ' ').slice(0, 180);
-    const shareImage = page.cover || '/images/share-default.jpg';
+    const shareImage = page.cover || '/images/share-actear.webp';
 %>
 <!doctype html>
 <html lang="<%= config.language %>">
@@ -26,9 +26,10 @@
     <title><%= title %></title>
     <link rel="canonical" href="<%- full_url_for(page.path || path) %>">
     <%- open_graph({ title: heading, description, image: full_url_for(shareImage), twitter_card: ogCardType(shareImage) }) %>
-    <link rel="icon" href="<%- url_for('/favicon.ico') %>" sizes="any">
-    <link rel="icon" type="image/png" href="<%- url_for('/images/favicon-64.png') %>">
-    <link rel="apple-touch-icon" href="<%- url_for('/apple-touch-icon.png') %>">
+    <link rel="icon" href="<%- asset_url('/favicon.ico') %>" sizes="16x16 32x32 48x48">
+    <link rel="icon" type="image/png" sizes="64x64" href="<%- asset_url('/images/favicon-64.png') %>">
+    <link rel="icon" type="image/svg+xml" href="<%- asset_url('/favicon.svg') %>">
+    <link rel="apple-touch-icon" href="<%- asset_url('/apple-touch-icon.png') %>">
     <link rel="alternate" type="application/atom+xml" title="<%= config.title %>" href="<%- url_for('/atom.xml') %>">
     <script>
     (function () {

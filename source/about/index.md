@@ -7,7 +7,7 @@ comments: false
 
 ## 关于我
 
-Tprme，大一。C 语言基础学完了，现在在学 Python 和 Web 安全。
+actear，大一。C 语言基础学完了，现在在学 Python 和 Web 安全。
 
 加入了学校 CTF 战队的 Web 方向，最近主要在打 CTFHub 的题，一边做一边补 HTTP、Burp Suite、SQL 注入这些底子。
 

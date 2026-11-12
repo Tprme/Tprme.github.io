@@ -55,7 +55,9 @@ h1, h2, h3, h4, p, figure { margin: 0; }
 #main { min-height: 60vh; outline: none; }
 .site-header { position: sticky; top: 16px; z-index: 1004; width: min(1240px, calc(100% - 48px)); margin: 16px auto 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 4px 20px #00000004; }
 .header-inner { height: 64px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; letter-spacing: -.5px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 18px; font-weight: 700; letter-spacing: -.5px; }
+.brand-label { display: flex; align-items: baseline; gap: 10px; }
+.brand-home { color: var(--accent); font-size: 12px; font-weight: 500; letter-spacing: 0; text-decoration: underline; text-underline-offset: 3px; }
 .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; line-height: 1; border-radius: 8px; background: var(--text); color: var(--surface); font-family: Georgia, serif; font-size: 22px; }
 #desktop-menu { display: flex; align-items: center; gap: 5px; }
 #desktop-menu > a { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 500; padding: 10px 15px; border-radius: 9px; white-space: nowrap; }
@@ -259,6 +261,7 @@ h1, h2, h3, h4, p, figure { margin: 0; }
     .site-header { top: 10px; margin-top: 10px; width: calc(100% - 24px); border-radius: 14px; }
     .header-inner { height: 56px; padding-inline: 16px; }
     .brand { font-size: 16px; }
+    .brand-label { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.25; }
     #desktop-menu { display: none; }
     #mobile-menu { display: block; }
     #mobile-menu summary { display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; flex-direction: column; gap: 5px; list-style: none; border: 1px solid var(--control-line); border-radius: 10px; background: var(--soft); cursor: pointer; }

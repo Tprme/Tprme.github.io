@@ -3,22 +3,18 @@
     <% if (firstPage) { %>
     <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-            <div class="eyebrow"><span class="eyebrow-line"></span>个人博客 / <%= date(site.posts.sort('date', -1).first().date, 'YYYY') %></div>
             <h1 id="hero-title"><%= config.title %><span class="title-dot">.</span></h1>
             <p class="hero-subtitle"><%= config.subtitle %></p>
-            <p class="hero-description">记录学习路上踩过的坑，<br>也写一点生活里的事。</p>
-            <div class="hero-actions"><a class="button button-primary" href="#latest">读最近的文章 <span aria-hidden="true">↓</span></a><a class="text-link" href="<%- url_for('/about/') %>">关于我 <span aria-hidden="true">↗</span></a></div>
-            <div class="hero-meta"><span><%= site.posts.length %> 篇文章</span><span><%= site.categories.length %> 个分类</span><a href="<%- url_for('/archives/') %>">全部归档 ↗</a></div>
+            <div class="hero-actions"><a class="button button-primary" href="#latest">读最近的文章 <span aria-hidden="true">↓</span></a><a class="button button-secondary" href="<%- url_for('/about/') %>">关于我 <span aria-hidden="true">↗</span></a></div>
         </div>
         <figure class="hero-figure">
             <button type="button" class="hero-photo" data-photo="<%- url_for(theme.hero) %>" aria-label="放大首页照片"><img src="<%- url_for(theme.hero) %>" alt="路牌旁的摩托车合影" width="509" height="660" fetchpriority="high"><span class="photo-expand" aria-hidden="true">↗</span></button>
-            <figcaption><span>生活的一帧</span><span class="photo-index" aria-hidden="true">01 / 01</span></figcaption>
         </figure>
     </section>
     <% } %>
     <section class="latest<%= firstPage ? '' : ' paged-list' %>" id="latest" aria-labelledby="latest-title">
-        <div class="section-head"><div><span class="eyebrow">文章</span><% if (firstPage) { %><h2 id="latest-title">最近更新</h2><% } else { %><h1 id="latest-title">继续翻阅</h1><% } %></div><a class="text-link" href="<%- url_for('/archives/') %>">全部 <%= site.posts.length %> 篇 <span aria-hidden="true">↗</span></a></div>
+        <div class="section-head"><% if (firstPage) { %><h2 id="latest-title">文章</h2><% } else { %><h1 id="latest-title">继续翻阅</h1><% } %><a class="button button-secondary" href="<%- url_for('/archives/') %>">全部 <%= site.posts.length %> 篇 <span aria-hidden="true">↗</span></a></div>
         <div class="home-columns"><div class="post-list"><% page.posts.forEach(post => { %><%- partial('_partial/post-card', { post }) %><% }); %><%- partial('_partial/pagination') %></div>
-        <aside class="home-aside" aria-label="按分类阅读"><span class="eyebrow">按分类阅读</span><% site.categories.toArray().sort((a,b) => b.length-a.length).forEach(category => { %><a class="category-shortcut" href="<%- url_for(category.path) %>"><span><%= category.name %></span><small><%= category.length %> 篇 ↗</small></a><% }); %><div class="aside-note"><span class="eyebrow">订阅</span><p>通过 RSS 阅读更新。</p><a class="text-link" href="<%- url_for('/atom.xml') %>">订阅文章 ↗</a></div></aside></div>
+        <aside class="home-aside" aria-label="按分类阅读"><span class="eyebrow">按分类阅读</span><% site.categories.toArray().sort((a,b) => b.length-a.length).forEach(category => { %><a class="category-shortcut" href="<%- url_for(category.path) %>"><span><%= category.name %></span><small><%= category.length %> 篇 ↗</small></a><% }); %><div class="aside-note"><p>通过 RSS 阅读更新。</p><a class="button button-secondary" href="<%- url_for('/atom.xml') %>">订阅文章 <span aria-hidden="true">↗</span></a></div></aside></div>
     </section>
 </div>

@@ -1,4 +1,4 @@
 <footer class="site-footer shell">
     <div><a class="footer-name" href="<%- url_for('/') %>"><%= config.title %><span aria-hidden="true">.</span></a><p>© <%= date(Date.now(), 'YYYY') %> <%= config.author %></p></div>
-    <nav aria-label="页脚导航"><a href="<%= theme.github %>" target="_blank" rel="noopener">GitHub ↗</a><a href="<%- url_for('/atom.xml') %>">RSS ↗</a><a href="<%- url_for('/about/') %>">关于</a></nav>
+    <nav aria-label="页脚导航"><a href="<%= theme.github %>" target="_blank" rel="noopener">GitHub ↗</a><a href="<%- url_for('/subscribe/') %>">订阅</a><a href="<%- url_for('/about/') %>">关于</a></nav>
 </footer>

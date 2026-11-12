@@ -9,6 +9,7 @@ const publicDir = path.join(root, 'public');
 const required = [
     'index.html',
     'about/index.html',
+    'subscribe/index.html',
     'archives/index.html',
     'categories/index.html',
     'tags/index.html',

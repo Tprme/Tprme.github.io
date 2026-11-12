@@ -1,0 +1,15 @@
+<div class="shell collection-page subscribe-page">
+    <a class="button button-secondary back-link" href="<%- url_for('/') %>"><span aria-hidden="true">←</span> 首页</a>
+    <header class="page-heading"><h1>订阅文章</h1><p>用 RSS 阅读器订阅，在阅读器里查看新文章。</p></header>
+    <section class="subscribe-address" aria-labelledby="feed-label">
+        <label id="feed-label" for="feed-url">RSS 订阅地址</label>
+        <div class="feed-controls"><input id="feed-url" type="url" readonly value="<%= full_url_for('/atom.xml') %>" spellcheck="false"><button id="feed-copy" type="button" class="button button-primary" hidden>复制订阅地址</button></div>
+        <p id="feed-copy-status" role="status" aria-live="polite">也可以直接选中地址，手动复制。</p>
+    </section>
+    <section class="subscribe-help" aria-labelledby="subscribe-help-title">
+        <h2 id="subscribe-help-title">怎么订阅？</h2>
+        <ol><li>复制上面的订阅地址。</li><li>打开 RSS 阅读器，选择“添加订阅”，粘贴地址。</li><li>确认订阅。之后的新文章会显示在阅读器里。</li></ol>
+        <p>还没有阅读器？可以试试 <a href="https://feedly.com/" target="_blank" rel="noopener">Feedly ↗</a> 或 <a href="https://www.inoreader.com/" target="_blank" rel="noopener">Inoreader ↗</a>。</p>
+        <a class="feed-raw-link" href="<%- url_for('/atom.xml') %>">查看原始 RSS 文件（XML）<span aria-hidden="true">↗</span></a>
+    </section>
+</div>

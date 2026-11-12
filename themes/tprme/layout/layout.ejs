@@ -4,6 +4,7 @@
     if (is_home()) view = 'index';
     if (is_archive()) view = 'archives';
     if (is_category() || is_tag() || page.type === 'categories' || page.type === 'tags') view = 'taxonomy';
+    if (page.type === 'subscribe') view = 'subscribe';
     let heading = page.title || config.title;
     if (is_archive()) heading = '归档';
     if (is_category()) heading = '分类：' + page.category;

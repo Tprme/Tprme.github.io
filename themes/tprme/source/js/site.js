@@ -82,6 +82,24 @@
         followArchiveAnchor(location.hash, false);
     }
 
+    var feedUrl = document.getElementById('feed-url');
+    var feedCopy = document.getElementById('feed-copy');
+    if (feedUrl && feedCopy) {
+        feedCopy.hidden = false;
+        feedUrl.addEventListener('focus', function () { feedUrl.select(); });
+        feedCopy.addEventListener('click', async function () {
+            var status = document.getElementById('feed-copy-status');
+            try {
+                await navigator.clipboard.writeText(feedUrl.value);
+                status.textContent = '已复制。到 RSS 阅读器里添加订阅即可。';
+            } catch (_) {
+                feedUrl.focus();
+                feedUrl.select();
+                status.textContent = '未能自动复制，地址已选中，请手动复制。';
+            }
+        });
+    }
+
     var viewer = document.getElementById('photo-viewer');
     var full = document.getElementById('photo-full');
     var previousOverflow = '';

@@ -2,7 +2,7 @@
 
 个人博客，用来记录编程入门路上踩过的坑和一点学习笔记（主要是 C 语言和 Python）。
 
-🌐 **https://Tprme.github.io**
+🌐 **https://actear.github.io**
 
 ## 关于这个仓库
 

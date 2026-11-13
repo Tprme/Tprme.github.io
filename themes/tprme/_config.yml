@@ -1,6 +1,6 @@
 hero: /images/hero.webp
 avatar: /images/me.webp
-github: https://github.com/Tprme
+github: https://github.com/actear
 menu:
   首页: /
   关于: /about/
@@ -10,4 +10,4 @@ menu:
 card:
   iconLinks:
     GitHub:
-      link: https://github.com/Tprme
+      link: https://github.com/actear

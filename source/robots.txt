@@ -3,5 +3,5 @@ User-agent: *
 Allow: /
 
 # 站点地图（同时提供 xml 和 txt 两种格式）
-Sitemap: https://Tprme.github.io/sitemap.xml
-Sitemap: https://Tprme.github.io/sitemap.txt
+Sitemap: https://actear.github.io/sitemap.xml
+Sitemap: https://actear.github.io/sitemap.txt

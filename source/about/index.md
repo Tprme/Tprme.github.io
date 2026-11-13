@@ -21,8 +21,8 @@ actear，大一。C 语言基础学完了，现在在学 Python 和 Web 安全�
 
 ## 找到我
 
-- GitHub：<https://github.com/Tprme>
-- 博客：<https://Tprme.github.io>
+- GitHub：<https://github.com/actear>
+- 博客：<https://actear.github.io>
 - 微信：staying-power
 - QQ：252981826
 
@@ -31,7 +31,7 @@ actear，大一。C 语言基础学完了，现在在学 Python 和 Web 安全�
 用 [Hexo](https://hexo.io) 搭建，主题是为这个博客单独做的，
 托管在 GitHub Pages 上，push 后由 GitHub Actions 自动部署。
 
-如果你发现文章里有错误，或想交流学习内容，欢迎通过 [GitHub 联系我](https://github.com/Tprme)。
+如果你发现文章里有错误，或想交流学习内容，欢迎通过 [GitHub 联系我](https://github.com/actear)。
 
 ## 常用
 

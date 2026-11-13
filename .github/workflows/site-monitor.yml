@@ -16,11 +16,11 @@ jobs:
         run: |
           set -eu
           for url in \
-            https://Tprme.github.io/ \
-            https://Tprme.github.io/about/ \
-            https://Tprme.github.io/archives/ \
-            https://Tprme.github.io/code/check_pwd.py.txt \
-            https://Tprme.github.io/code/c-language-week1.c.txt
+            https://actear.github.io/ \
+            https://actear.github.io/about/ \
+            https://actear.github.io/archives/ \
+            https://actear.github.io/code/check_pwd.py.txt \
+            https://actear.github.io/code/c-language-week1.c.txt
           do
             curl --fail --silent --show-error --location --retry 3 --max-time 20 "$url" > /dev/null
             echo "OK $url"
